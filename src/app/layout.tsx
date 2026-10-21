@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-raasta-canvas text-raasta-ink min-h-screen antialiased flex flex-col selection:bg-raasta-periwinkle selection:text-raasta-ink">
         <AuthProvider>
-          <div className="flex-1 flex flex-col w-full max-w-md mx-auto sm:max-w-xl md:max-w-2xl lg:max-w-5xl shadow-card bg-raasta-canvas">
+          <div className="flex-1 flex flex-col w-full min-h-screen bg-raasta-canvas">
             {children}
           </div>
         </AuthProvider>

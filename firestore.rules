@@ -7,6 +7,20 @@ rules_version = '2';
 // Assumed Data Model
 // ===============================================================
 //
+// Collection: users
+// Document ID: {userId}
+// Fields:
+//   - uid: string (required, 1-128 chars, matches userId and auth.uid, immutable)
+//   - displayName: string (required, 1-100 chars)
+//   - homeArea: string (required, 1-100 chars)
+//   - preferences: map (required, city == 'Pune' and categories is list)
+//   - onboardingCompleted: bool (required)
+//   - createdAt: string (required, ISO 8601 string, 10-50 chars, immutable)
+//   - updatedAt: string (required, ISO 8601 string, 10-50 chars)
+//   - bio: string (optional, 0-500 chars)
+//   - photoURL: string (optional, 0-500 chars)
+//   - email: string (optional, 0-150 chars)
+//
 // Collection: users/{userId}/pathways
 // Document ID: {pathwayId}
 // Fields:
@@ -69,7 +83,60 @@ service cloud.firestore {
     }
 
     // ===============================================================
-    // Domain Validator (Validator Function Pattern)
+    // Domain Validator: User Profile (Validator Function Pattern)
+    // Used in BOTH create and update rules to eliminate Update Bypass
+    // ===============================================================
+    function isValidUserProfile(data, userId) {
+      return hasRequiredFields([
+          'uid',
+          'displayName',
+          'homeArea',
+          'preferences',
+          'onboardingCompleted',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        hasOnlyAllowedFields([
+          'uid',
+          'displayName',
+          'email',
+          'photoURL',
+          'bio',
+          'homeArea',
+          'preferences',
+          'onboardingCompleted',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        // uid: matches userId path and request.auth.uid, bounded string (1-128 chars)
+        isValidString(data.uid, 1, 128) &&
+        data.uid == userId &&
+        data.uid == request.auth.uid &&
+        // displayName: string (1-100 chars)
+        isValidString(data.displayName, 1, 100) &&
+        // homeArea: string (1-100 chars)
+        isValidString(data.homeArea, 1, 100) &&
+        // onboardingCompleted: boolean
+        data.onboardingCompleted is bool &&
+        // createdAt, updatedAt: ISO timestamp strings (10-50 chars)
+        isValidString(data.createdAt, 10, 50) &&
+        isValidString(data.updatedAt, 10, 50) &&
+        // preferences: map with city == 'Pune' and categories is list
+        data.preferences is map &&
+        ('city' in data.preferences) &&
+        data.preferences.city == 'Pune' &&
+        ('categories' in data.preferences) &&
+        data.preferences.categories is list &&
+        // optional bio: string <= 500 chars
+        (!('bio' in data) || isValidString(data.bio, 0, 500)) &&
+        // optional photoURL: string <= 500 chars
+        (!('photoURL' in data) || isValidString(data.photoURL, 0, 500)) &&
+        // optional email: string <= 150 chars
+        (!('email' in data) || isValidString(data.email, 0, 150));
+    }
+
+    // ===============================================================
+    // Domain Validator: Saved Pathway (Validator Function Pattern)
     // Used in BOTH create and update rules to eliminate Update Bypass
     // ===============================================================
     function isValidSavedPathway(data, pathwayId, userId) {
@@ -123,6 +190,27 @@ service cloud.firestore {
     // ===============================================================
     match /{document=**} {
       allow read, write: if false;
+    }
+
+    // ===============================================================
+    // User Profile Document
+    // Path: users/{userId}
+    // ===============================================================
+    match /users/{userId} {
+      // Owner can read their own profile
+      allow read: if isOwner(userId);
+
+      // Create: Owner-only, validated schema, UID parity, bounded strings
+      allow create: if isOwner(userId) &&
+        isValidUserProfile(request.resource.data, userId);
+
+      // Update: Owner-only, immutable fields protected, full schema re-validated
+      allow update: if isOwner(userId) &&
+        areImmutableFieldsUnchanged(['uid', 'createdAt']) &&
+        isValidUserProfile(request.resource.data, userId);
+
+      // Delete: Owner-only
+      allow delete: if isOwner(userId);
     }
 
     // ===============================================================
