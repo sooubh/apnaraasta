@@ -22,7 +22,6 @@ interface PathwayViewProps {
   onRegenerate: () => void;
   onEditPreferences: () => void;
   onSavePathway: () => void;
-  onGoToCompare: () => void;
   isSaving: boolean;
   isRegenerating: boolean;
   isSaved: boolean;
@@ -34,7 +33,6 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
   onRegenerate,
   onEditPreferences,
   onSavePathway,
-  onGoToCompare,
   isSaving,
   isRegenerating,
   isSaved,
@@ -184,19 +182,19 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
       )}
 
       {/* Action Toolbar */}
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <button
           onClick={onRegenerate}
           disabled={isRegenerating}
-          className="p-3 rounded-2xl bg-white hover:bg-neutral-50 text-raasta-ink font-bold text-xs border border-raasta-border shadow-subtle flex flex-col items-center justify-center space-y-1 transition-all disabled:opacity-50"
+          className="p-3.5 rounded-2xl bg-white hover:bg-neutral-50 text-raasta-ink font-bold text-xs border border-raasta-border shadow-subtle flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 text-raasta-primary ${isRegenerating ? "animate-spin" : ""}`} />
-          <span>{isRegenerating ? "Curating..." : "Regenerate"}</span>
+          <span>{isRegenerating ? "Curating..." : "Regenerate Pathway"}</span>
         </button>
 
         <button
           onClick={onEditPreferences}
-          className="p-3 rounded-2xl bg-white hover:bg-neutral-50 text-raasta-ink font-bold text-xs border border-raasta-border shadow-subtle flex flex-col items-center justify-center space-y-1 transition-all"
+          className="p-3.5 rounded-2xl bg-white hover:bg-neutral-50 text-raasta-ink font-bold text-xs border border-raasta-border shadow-subtle flex items-center justify-center space-x-2 transition-all"
         >
           <SlidersHorizontal className="w-4 h-4 text-raasta-primary" />
           <span>Edit Preferences</span>
@@ -205,7 +203,7 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
         <button
           onClick={onSavePathway}
           disabled={isSaving || isSaved}
-          className={`p-3 rounded-2xl font-bold text-xs border shadow-subtle flex flex-col items-center justify-center space-y-1 transition-all ${
+          className={`p-3.5 rounded-2xl font-bold text-xs border shadow-subtle flex items-center justify-center space-x-2 transition-all ${
             isSaved
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-white hover:bg-neutral-50 text-raasta-ink border-raasta-border"
@@ -216,15 +214,7 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
           ) : (
             <Bookmark className="w-4 h-4 text-raasta-primary" />
           )}
-          <span>{isSaving ? "Saving..." : isSaved ? "Saved" : "Save Pathway"}</span>
-        </button>
-
-        <button
-          onClick={onGoToCompare}
-          className="p-3 rounded-2xl bg-white hover:bg-neutral-50 text-raasta-ink font-bold text-xs border border-raasta-border shadow-subtle flex flex-col items-center justify-center space-y-1 transition-all"
-        >
-          <Scale className="w-4 h-4 text-raasta-primary" />
-          <span>AI Benchmark</span>
+          <span>{isSaving ? "Saved" : isSaved ? "Saved to Profile" : "Save Pathway"}</span>
         </button>
       </div>
     </div>

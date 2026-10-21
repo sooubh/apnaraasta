@@ -30,7 +30,6 @@ interface PersonalizedFeedProps {
   onRegenerate: () => void;
   onEditPreferences: () => void;
   onSavePathway: () => void;
-  onGoToCompare: () => void;
   onOpenAuthModal?: () => void;
 }
 
@@ -45,7 +44,6 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
   onRegenerate,
   onEditPreferences,
   onSavePathway,
-  onGoToCompare,
   onOpenAuthModal,
 }) => {
   const { user } = useAuth();
@@ -131,7 +129,6 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
           onRegenerate={onRegenerate}
           onEditPreferences={onEditPreferences}
           onSavePathway={onSavePathway}
-          onGoToCompare={onGoToCompare}
           isSaving={isSaving}
           isRegenerating={isLoading}
           isSaved={isSaved}

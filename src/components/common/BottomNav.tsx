@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Compass, GitCompare, Bookmark } from "lucide-react";
+import { Compass, Bookmark } from "lucide-react";
 
-export type NavTab = "discover" | "compare" | "saved";
+export type NavTab = "discover" | "saved";
 
 interface BottomNavProps {
   currentTab: NavTab;
@@ -18,10 +18,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 }) => {
   return (
     <nav className="fixed bottom-3 left-0 right-0 z-40 px-4 flex justify-center pointer-events-none">
-      <div className="bg-white/95 backdrop-blur-lg border border-raasta-border shadow-floating rounded-full px-3 py-1.5 flex items-center space-x-1.5 pointer-events-auto">
+      <div className="bg-white/95 backdrop-blur-lg border border-raasta-border shadow-floating rounded-full px-3 py-1.5 flex items-center space-x-2 pointer-events-auto">
         <button
           onClick={() => onTabChange("discover")}
-          className={`flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+          className={`flex items-center space-x-1.5 px-5 py-2 rounded-full text-xs font-semibold transition-all ${
             currentTab === "discover"
               ? "bg-raasta-ink text-white shadow-sm"
               : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"
@@ -32,20 +32,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         </button>
 
         <button
-          onClick={() => onTabChange("compare")}
-          className={`flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-            currentTab === "compare"
-              ? "bg-raasta-ink text-white shadow-sm"
-              : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"
-          }`}
-        >
-          <GitCompare className="w-4 h-4" />
-          <span>Compare</span>
-        </button>
-
-        <button
           onClick={() => onTabChange("saved")}
-          className={`flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all relative ${
+          className={`flex items-center space-x-1.5 px-5 py-2 rounded-full text-xs font-semibold transition-all relative ${
             currentTab === "saved"
               ? "bg-raasta-ink text-white shadow-sm"
               : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"

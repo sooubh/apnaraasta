@@ -60,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <nav className="hidden md:flex items-center space-x-1.5 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full border border-raasta-border shadow-subtle">
             <button
               onClick={() => onTabChange("discover")}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                 currentTab === "discover"
                   ? "bg-raasta-ink text-white shadow-sm"
                   : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"
@@ -70,19 +70,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Personalized Feed</span>
             </button>
             <button
-              onClick={() => onTabChange("compare")}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                currentTab === "compare"
-                  ? "bg-raasta-ink text-white shadow-sm"
-                  : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"
-              }`}
-            >
-              <GitCompare className="w-3.5 h-3.5" />
-              <span>AI Benchmark</span>
-            </button>
-            <button
               onClick={() => onTabChange("saved")}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                 currentTab === "saved"
                   ? "bg-raasta-ink text-white shadow-sm"
                   : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"

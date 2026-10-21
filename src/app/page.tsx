@@ -13,12 +13,10 @@ import { StepOnboarding } from "@/components/onboarding/StepOnboarding";
 import { PersonalizedFeed } from "@/components/feed/PersonalizedFeed";
 import { ProfileSidebar } from "@/components/profile/ProfileSidebar";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
-import { CompareView } from "@/components/compare/CompareView";
 import { SavedPathwaysView } from "@/components/saved/SavedPathwaysView";
 import { useAuth } from "@/lib/firebase/authContext";
 import { saveUserPathway, getUserPathways } from "@/lib/firebase/savedPathways";
 import {
-  ComparePathwaysResponse,
   GeneratePathwayResponse,
   Pathway,
   QlooEvidence,
@@ -43,10 +41,6 @@ export default function Home() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
-
-  // Benchmark / Comparison state
-  const [compareData, setCompareData] = useState<ComparePathwaysResponse | null>(null);
-  const [isComparing, setIsComparing] = useState(false);
 
   // Load saved count
   const refreshSavedCount = useCallback(async () => {
@@ -179,36 +173,6 @@ export default function Home() {
     }
   };
 
-  // Handle run comparative benchmark
-  const handleRunComparison = async () => {
-    const prefsToUse: UserPreferences = profile?.preferences || {
-      city: "Pune",
-      areas: ["Koregaon Park", "FC Road & Shivaji Nagar"],
-      flexibleBudget: true,
-      days: ["sat", "sun"],
-      timeWindows: ["morning", "afternoon"],
-      socialComfort: "balanced",
-      categories: ["music_films", "photography_art"],
-      favouriteEntities: [],
-    };
-
-    try {
-      setIsComparing(true);
-      const res = await fetch("/api/pathways/compare", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preferences: prefsToUse }),
-      });
-
-      const data: ComparePathwaysResponse = await res.json();
-      setCompareData(data);
-      setIsComparing(false);
-    } catch (err) {
-      console.warn("Comparison failed:", err);
-      setIsComparing(false);
-    }
-  };
-
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       {/* Top Navbar */}
@@ -216,12 +180,7 @@ export default function Home() {
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onEditProfile={() => setIsEditProfileModalOpen(true)}
         currentTab={currentTab}
-        onTabChange={(tab) => {
-          setCurrentTab(tab);
-          if (tab === "compare" && !compareData && !isComparing) {
-            handleRunComparison();
-          }
-        }}
+        onTabChange={(tab) => setCurrentTab(tab)}
         savedCount={savedCount}
       />
 
@@ -254,10 +213,6 @@ export default function Home() {
                   profile={profile}
                   onEditProfile={() => setIsEditProfileModalOpen(true)}
                   onGoToSaved={() => setCurrentTab("saved")}
-                  onGoToCompare={() => {
-                    setCurrentTab("compare");
-                    if (!compareData) handleRunComparison();
-                  }}
                   savedCount={savedCount}
                 />
 
@@ -284,28 +239,13 @@ export default function Home() {
                     onRegenerate={handleRegenerate}
                     onEditPreferences={() => setIsEditProfileModalOpen(true)}
                     onSavePathway={handleSavePathway}
-                    onGoToCompare={() => {
-                      setCurrentTab("compare");
-                      if (!compareData) handleRunComparison();
-                    }}
                     onOpenAuthModal={() => setIsAuthModalOpen(true)}
                   />
                 </div>
               </div>
             )}
 
-            {/* Tab 2: Compare Mode */}
-            {currentTab === "compare" && (
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-                <CompareView
-                  compareData={compareData}
-                  isLoading={isComparing}
-                  onRunComparison={handleRunComparison}
-                />
-              </div>
-            )}
-
-            {/* Tab 3: Saved Pathways */}
+            {/* Tab 2: Saved Pathways */}
             {currentTab === "saved" && (
               <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
                 <SavedPathwaysView
@@ -321,12 +261,7 @@ export default function Home() {
       <div className="md:hidden">
         <BottomNav
           currentTab={currentTab}
-          onTabChange={(tab) => {
-            setCurrentTab(tab);
-            if (tab === "compare" && !compareData && !isComparing) {
-              handleRunComparison();
-            }
-          }}
+          onTabChange={(tab) => setCurrentTab(tab)}
           savedCount={savedCount}
         />
       </div>

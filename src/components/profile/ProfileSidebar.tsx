@@ -16,7 +16,6 @@ interface ProfileSidebarProps {
   profile: UserProfile;
   onEditProfile: () => void;
   onGoToSaved: () => void;
-  onGoToCompare: () => void;
   savedCount?: number;
 }
 
@@ -33,7 +32,6 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   profile,
   onEditProfile,
   onGoToSaved,
-  onGoToCompare,
   savedCount = 0,
 }) => {
   const { user } = useAuth();
@@ -161,21 +159,14 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             )}
         </div>
 
-        {/* Quick Navigation: Saved & Benchmark */}
-        <div className="pt-2 border-t border-raasta-borderSubtle grid grid-cols-2 gap-2">
+        {/* Quick Navigation: Saved Pathways */}
+        <div className="pt-2 border-t border-raasta-borderSubtle">
           <button
             onClick={onGoToSaved}
-            className="py-2.5 px-3 rounded-2xl bg-white hover:bg-raasta-subtle text-raasta-ink text-xs font-semibold border border-raasta-border flex items-center justify-center space-x-1.5 shadow-subtle transition-all"
+            className="w-full py-2.5 px-3 rounded-2xl bg-white hover:bg-raasta-subtle text-raasta-ink text-xs font-semibold border border-raasta-border flex items-center justify-center space-x-1.5 shadow-subtle transition-all"
           >
             <Bookmark className="w-3.5 h-3.5 text-raasta-primary" />
-            <span>Saved ({savedCount})</span>
-          </button>
-          <button
-            onClick={onGoToCompare}
-            className="py-2.5 px-3 rounded-2xl bg-white hover:bg-raasta-subtle text-raasta-ink text-xs font-semibold border border-raasta-border flex items-center justify-center space-x-1.5 shadow-subtle transition-all"
-          >
-            <GitCompare className="w-3.5 h-3.5 text-raasta-primary" />
-            <span>Benchmark</span>
+            <span>Saved Pathways ({savedCount})</span>
           </button>
         </div>
       </div>
