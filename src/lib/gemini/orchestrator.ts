@@ -343,11 +343,19 @@ export class PathwayOrchestrator {
       .filter((id) => !usedIds.has(id))
       .slice(0, MAX_ALTERNATIVES);
 
-    const categoryNames = preferences.categories.map((c) => c.replace("_", " "));
+    const categoryLabels: Record<string, string> = {
+      music_films: "Music & Film",
+      photography_art: "Art & Photography",
+      books_board_games: "Books & Board Games",
+      food_experiences: "Food & Culinary",
+      outdoor_activities: "Outdoors & Heritage",
+      volunteering: "Volunteering & Civic Action",
+    };
+    const categoryNames = preferences.categories.map((c) => categoryLabels[c] || c.replace(/_/g, " "));
     const formattedCategories =
       categoryNames.length === 1
         ? categoryNames[0]
-        : categoryNames.slice(0, -1).join(", ") + " & " + categoryNames.slice(-1);
+        : categoryNames.slice(0, -1).join(", ") + " and " + categoryNames.slice(-1);
 
     const title = `Your 3-Step Pathway into Pune's ${formattedCategories} Community`;
 
