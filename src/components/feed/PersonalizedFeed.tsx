@@ -258,31 +258,46 @@ interface ActivityFeedCardProps {
 
 const ActivityFeedCard: React.FC<ActivityFeedCardProps> = ({ activity, compact = false }) => {
   return (
-    <div className="bg-white rounded-3xl border border-raasta-border overflow-hidden shadow-subtle hover:shadow-card transition-all flex flex-col justify-between">
+    <div className="bg-white rounded-3xl border border-raasta-border overflow-hidden shadow-subtle hover:shadow-floating transition-all duration-300 flex flex-col justify-between group">
       <div>
-        {/* Image header if present */}
-        {activity.imageUrl && !compact && (
-          <div className="h-36 w-full relative overflow-hidden bg-raasta-subtle">
+        {/* BIG HERO IMAGE */}
+        {activity.imageUrl && (
+          <div className={`w-full relative overflow-hidden bg-raasta-subtle ${compact ? "h-44 sm:h-48" : "h-52 sm:h-60"}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={activity.imageUrl}
               alt={activity.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-            <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/90 backdrop-blur-sm text-raasta-ink shadow-subtle border border-raasta-border">
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
+
+            {/* Top Badge */}
+            <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold bg-white/95 backdrop-blur-sm text-raasta-ink shadow-subtle border border-raasta-border">
               {activity.category.replace(/_/g, " ")}
             </span>
+
+            {/* Top Right Cost */}
+            <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-raasta-ink/85 backdrop-blur-sm text-white shadow-subtle border border-white/20">
+              {activity.costStatus === "free_confirmed"
+                ? "Free Entry"
+                : activity.priceMinInr !== undefined
+                ? `₹${activity.priceMinInr}`
+                : "Verified"}
+            </span>
+
+            {/* Bottom Location */}
+            {activity.area && (
+              <span className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/40 backdrop-blur-md text-white shadow-subtle border border-white/20 inline-flex items-center">
+                <MapPin className="w-3 h-3 mr-1 text-white" />
+                {activity.area}
+              </span>
+            )}
           </div>
         )}
 
-        <div className="p-4 space-y-2">
-          {compact && (
-            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-raasta-primaryLight text-raasta-primary mb-1 border border-raasta-border">
-              {activity.category.replace(/_/g, " ")}
-            </span>
-          )}
-
-          <h4 className="font-bold text-sm text-raasta-ink leading-snug line-clamp-1">
+        <div className="p-5 space-y-2.5">
+          <h4 className="font-bold text-base sm:text-lg text-raasta-ink leading-snug line-clamp-1">
             {activity.title}
           </h4>
 
@@ -290,50 +305,29 @@ const ActivityFeedCard: React.FC<ActivityFeedCardProps> = ({ activity, compact =
             {activity.shortDescription}
           </p>
 
-          <div className="pt-2 flex flex-wrap gap-2 text-[11px] text-raasta-inkMuted">
-            {activity.area && (
-              <span className="inline-flex items-center">
-                <MapPin className="w-3 h-3 text-raasta-primary mr-1" />
-                {activity.area}
-              </span>
-            )}
-            {activity.costStatus === "free_confirmed" ? (
-              <span className="inline-flex items-center text-emerald-700 font-medium">
-                Free entry
-              </span>
-            ) : activity.priceMinInr !== undefined ? (
-              <span className="inline-flex items-center">
-                ₹{activity.priceMinInr}
-                {activity.priceMaxInr && activity.priceMaxInr !== activity.priceMinInr
-                  ? ` - ₹${activity.priceMaxInr}`
-                  : ""}
-              </span>
-            ) : null}
-          </div>
-
           {activity.scheduleText && (
-            <p className="text-[11px] text-raasta-inkMuted/80 line-clamp-1 flex items-center">
-              <Clock className="w-3 h-3 mr-1 text-raasta-primary shrink-0" />
-              <span>{activity.scheduleText}</span>
-            </p>
+            <div className="p-2.5 rounded-xl bg-raasta-subtle border border-raasta-borderSubtle text-[11px] text-raasta-ink flex items-center">
+              <Clock className="w-3.5 h-3.5 mr-1.5 text-raasta-primary shrink-0" />
+              <span className="line-clamp-1">{activity.scheduleText}</span>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="p-4 pt-0 border-t border-raasta-borderSubtle mt-2 flex items-center justify-between">
-        <span className="text-[10px] text-raasta-inkMuted inline-flex items-center">
-          <ShieldCheck className="w-3 h-3 text-emerald-600 mr-1" />
-          Verified source
+      <div className="p-5 pt-3 border-t border-raasta-borderSubtle flex items-center justify-between text-xs">
+        <span className="text-[10px] text-emerald-700 font-semibold inline-flex items-center">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 mr-1" />
+          {activity.sourceName}
         </span>
         {activity.sourceUrl && (
           <a
             href={activity.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[11px] font-semibold text-raasta-primary hover:underline inline-flex items-center"
+            className="text-[11px] font-bold text-raasta-primary hover:text-raasta-primaryHover inline-flex items-center bg-raasta-subtle hover:bg-raasta-primaryLight px-3 py-1 rounded-full border border-raasta-border transition-colors"
           >
-            <span>Details</span>
-            <ExternalLink className="w-3 h-3 ml-0.5" />
+            <span>Explore</span>
+            <ExternalLink className="w-3 h-3 ml-1" />
           </a>
         )}
       </div>
