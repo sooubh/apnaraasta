@@ -51,13 +51,16 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
 
   // Filter activities for user's home area or nearby
   const neighborhoodActivities = useMemo(() => {
+    const targetAreas = [profile.homeArea, ...(profile.preferences.areas || [])];
+    const tokens = targetAreas
+      .flatMap((a) => a.toLowerCase().split(/[&,/]+/))
+      .map((s) => s.trim())
+      .filter(Boolean);
+
     return PUNE_ACTIVITIES.filter((a) => {
-      if (a.area && a.area.toLowerCase().includes(profile.homeArea.toLowerCase())) {
-        return true;
-      }
-      return profile.preferences.areas.some(
-        (area) => a.area && a.area.toLowerCase().includes(area.toLowerCase())
-      );
+      if (!a.area) return false;
+      const actAreaLower = a.area.toLowerCase();
+      return tokens.some((t) => actAreaLower.includes(t) || t.includes(actAreaLower));
     }).slice(0, 4);
   }, [profile.homeArea, profile.preferences.areas]);
 
