@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  Compass,
   RefreshCw,
   SlidersHorizontal,
   Bookmark,
@@ -10,7 +9,6 @@ import {
   ChevronDown,
   ChevronUp,
   Scale,
-  ShieldCheck,
   Tag,
 } from "lucide-react";
 import { Pathway, PathwayStep, QlooEvidence } from "@/lib/types/pathway";
@@ -33,7 +31,6 @@ interface PathwayViewProps {
 export const PathwayView: React.FC<PathwayViewProps> = ({
   pathway,
   qlooEvidence,
-  method,
   onRegenerate,
   onEditPreferences,
   onSavePathway,
@@ -64,7 +61,7 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
       ...updatedSteps[stepIndex],
       activityId: alternativeToUse.id,
       activity: alternativeToUse,
-      whyThisStep: `Alternative selection: ${alternativeToUse.title} offers an engaging experience in ${alternativeToUse.area || "Pune"}.`,
+      whyThisStep: `Alternative selection: ${alternativeToUse.title} in ${alternativeToUse.area || "Pune"}.`,
     };
 
     // Update alternatives list (put previous activity into alternatives, remove chosen)
@@ -78,100 +75,53 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-28">
-      {/* Title & Status Banner */}
-      <div className="bg-white rounded-3xl p-5 shadow-card border border-raasta-borderSubtle">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          {method === "qloo" ? (
-            <div className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-raasta-primaryLight to-[#EAE6FE] text-raasta-primary px-3 py-1 rounded-full text-xs font-bold border border-raasta-border">
-              <Compass className="w-3.5 h-3.5" />
-              <span>Cultural Taste Signals Active</span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center space-x-1.5 bg-neutral-100 text-neutral-700 px-3 py-1 rounded-full text-xs font-bold">
-              <span>Baseline Heuristic Mode</span>
+    <div className="space-y-6 pb-12">
+      {/* Optional Subtle Cultural Signals Inspection */}
+      {qlooEvidence && (
+        <div className="flex items-center justify-between text-xs px-1">
+          <button
+            onClick={() => setShowEvidence(!showEvidence)}
+            className="inline-flex items-center space-x-1.5 text-raasta-inkMuted hover:text-raasta-primary transition-colors text-xs font-semibold"
+          >
+            <Tag className="w-3.5 h-3.5 text-raasta-primary" />
+            <span>Taste Signals & Grounding</span>
+            {showEvidence ? (
+              <ChevronUp className="w-3.5 h-3.5 ml-0.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+            )}
+          </button>
+        </div>
+      )}
+
+      {showEvidence && qlooEvidence && (
+        <div className="p-4 rounded-2xl bg-white border border-raasta-border text-xs text-raasta-ink space-y-2.5 shadow-subtle animate-in fade-in duration-150">
+          <p className="font-medium text-xs leading-relaxed text-raasta-inkMuted">
+            {qlooEvidence.summary}
+          </p>
+
+          {qlooEvidence.resolvedEntities && qlooEvidence.resolvedEntities.length > 0 && (
+            <div>
+              <span className="text-[10px] uppercase font-bold text-raasta-inkMuted tracking-wider">
+                Resolved Taste Entities:
+              </span>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {qlooEvidence.resolvedEntities.map((e, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-raasta-subtle px-2.5 py-0.5 rounded-full border border-raasta-border text-[11px] font-medium"
+                  >
+                    {e.name}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
-
-          <div className="flex items-center space-x-1 text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            <ShieldCheck className="w-3 h-3 text-emerald-600" />
-            <span>100% Sourced Pune Data</span>
-          </div>
         </div>
+      )}
 
-        <h1 className="text-xl sm:text-2xl font-bold text-raasta-ink tracking-tight mb-2">
-          {pathway.title}
-        </h1>
-
-        <p className="text-xs text-raasta-inkMuted leading-relaxed">
-          A coherent sequence moving from an approachable starting point to shared-interest engagement and regular community belonging.
-        </p>
-
-        {/* Qloo Explainability Accordion */}
-        {qlooEvidence && (
-          <div className="mt-3 pt-3 border-t border-raasta-borderSubtle">
-            <button
-              onClick={() => setShowEvidence(!showEvidence)}
-              className="w-full flex items-center justify-between text-xs font-semibold text-raasta-primary hover:text-raasta-primaryHover transition-colors"
-            >
-              <div className="flex items-center space-x-1.5">
-                <Tag className="w-3.5 h-3.5" />
-                <span>View Cultural Taste Signals & Evidence</span>
-              </div>
-              {showEvidence ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </button>
-
-            {showEvidence && (
-              <div className="mt-2.5 p-3 rounded-2xl bg-raasta-subtle text-xs text-raasta-ink space-y-2 border border-raasta-borderSubtle animate-in fade-in duration-150">
-                <p className="font-medium text-[11px]">{qlooEvidence.summary}</p>
-
-                {qlooEvidence.resolvedEntities && qlooEvidence.resolvedEntities.length > 0 && (
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-raasta-inkMuted tracking-wider">
-                      Resolved Cultural Entities:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {qlooEvidence.resolvedEntities.map((e, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-white px-2 py-0.5 rounded-full border border-raasta-border text-[11px] font-medium"
-                        >
-                          {e.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {qlooEvidence.contributingSignals && qlooEvidence.contributingSignals.length > 0 && (
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-raasta-inkMuted tracking-wider">
-                      Contributing Taste Vectors:
-                    </span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {qlooEvidence.contributingSignals.map((sig, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-raasta-primaryLight text-raasta-primary px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                        >
-                          {sig}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* The 3 Ordered Step Cards */}
-      <div className="space-y-4">
+      {/* The 3 Ordered Big-Image Step Cards */}
+      <div className="space-y-5">
         {currentSteps.map((step) => {
           if (!step.activity) return null;
           return (
@@ -194,10 +144,10 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
           <div className="flex items-center justify-between mb-3">
             <div>
               <h3 className="font-bold text-sm text-raasta-ink">
-                Available Alternatives in Pune
+                Other Matching Pune Places
               </h3>
               <p className="text-[11px] text-raasta-inkMuted">
-                Other source-verified candidates matching your constraints.
+                Swap any step above with these verified alternatives.
               </p>
             </div>
             <span className="text-xs font-semibold text-raasta-primary bg-raasta-primaryLight px-2.5 py-0.5 rounded-full">
@@ -205,7 +155,7 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
             </span>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {currentAlternatives.map((alt) => (
               <div
                 key={alt.id}
@@ -241,7 +191,7 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
           className="p-3 rounded-2xl bg-white hover:bg-neutral-50 text-raasta-ink font-bold text-xs border border-raasta-border shadow-subtle flex flex-col items-center justify-center space-y-1 transition-all disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 text-raasta-primary ${isRegenerating ? "animate-spin" : ""}`} />
-          <span>{isRegenerating ? "Regenerating..." : "Regenerate"}</span>
+          <span>{isRegenerating ? "Curating..." : "Regenerate"}</span>
         </button>
 
         <button
@@ -249,7 +199,7 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
           className="p-3 rounded-2xl bg-white hover:bg-neutral-50 text-raasta-ink font-bold text-xs border border-raasta-border shadow-subtle flex flex-col items-center justify-center space-y-1 transition-all"
         >
           <SlidersHorizontal className="w-4 h-4 text-raasta-primary" />
-          <span>Adjust Filters</span>
+          <span>Edit Preferences</span>
         </button>
 
         <button
@@ -274,7 +224,7 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
           className="p-3 rounded-2xl bg-white hover:bg-neutral-50 text-raasta-ink font-bold text-xs border border-raasta-border shadow-subtle flex flex-col items-center justify-center space-y-1 transition-all"
         >
           <Scale className="w-4 h-4 text-raasta-primary" />
-          <span>Benchmark</span>
+          <span>AI Benchmark</span>
         </button>
       </div>
     </div>

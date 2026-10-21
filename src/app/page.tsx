@@ -288,6 +288,7 @@ export default function Home() {
                       setCurrentTab("compare");
                       if (!compareData) handleRunComparison();
                     }}
+                    onOpenAuthModal={() => setIsAuthModalOpen(true)}
                   />
                 </div>
               </div>

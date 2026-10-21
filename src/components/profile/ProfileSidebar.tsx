@@ -6,12 +6,11 @@ import {
   Edit3,
   Bookmark,
   GitCompare,
-  Compass,
   Wallet,
   Users,
-  ShieldCheck,
 } from "lucide-react";
 import { UserProfile } from "@/lib/types/profile";
+import { useAuth } from "@/lib/firebase/authContext";
 
 interface ProfileSidebarProps {
   profile: UserProfile;
@@ -21,6 +20,15 @@ interface ProfileSidebarProps {
   savedCount?: number;
 }
 
+const CATEGORY_NAMES: Record<string, string> = {
+  music_films: "Music & Film",
+  photography_art: "Art & Photography",
+  books_board_games: "Books & Board Games",
+  food_experiences: "Culinary & Coffee",
+  outdoor_activities: "Outdoors & Heritage",
+  volunteering: "Civic & Care",
+};
+
 export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   profile,
   onEditProfile,
@@ -28,9 +36,15 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   onGoToCompare,
   savedCount = 0,
 }) => {
+  const { user } = useAuth();
+  const hasCustomBio =
+    profile.bio &&
+    profile.bio.trim() !== "Curious cultural explorer in Pune" &&
+    profile.bio.trim().length > 0;
+
   return (
     <aside className="hidden lg:block w-80 shrink-0 space-y-4 sticky top-20 self-start">
-      {/* User Profile / Cultural Passport Card */}
+      {/* User Cultural Passport Card */}
       <div className="bg-white rounded-3xl p-5 shadow-card border border-raasta-border space-y-4">
         {/* Header with Avatar & Details */}
         <div className="flex items-start justify-between">
@@ -48,9 +62,11 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
               </div>
             )}
             <div>
-              <h3 className="font-bold text-base text-raasta-ink leading-tight">
-                {profile.displayName}
-              </h3>
+              <div className="flex items-center space-x-1.5">
+                <h3 className="font-bold text-base text-raasta-ink leading-tight">
+                  {profile.displayName}
+                </h3>
+              </div>
               <span className="inline-flex items-center text-xs text-raasta-inkMuted mt-0.5">
                 <MapPin className="w-3 h-3 text-raasta-primary mr-1" />
                 {profile.homeArea}, Pune
@@ -67,15 +83,23 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
           </button>
         </div>
 
-        {/* Bio Snippet */}
-        {profile.bio && (
+        {/* Sync Status Badge */}
+        <div className="flex items-center space-x-1.5 text-[11px] text-raasta-inkMuted bg-raasta-subtle px-3 py-1.5 rounded-xl border border-raasta-borderSubtle">
+          <span className={`w-2 h-2 rounded-full ${user ? "bg-emerald-500" : "bg-amber-400"}`} />
+          <span className="font-medium">
+            {user ? "Cloud Synced (Google Account)" : "Preserved in this Browser"}
+          </span>
+        </div>
+
+        {/* Custom Bio (Only if genuinely filled out) */}
+        {hasCustomBio && (
           <p className="text-xs text-raasta-inkMuted leading-relaxed bg-raasta-subtle p-3 rounded-2xl border border-raasta-borderSubtle">
             &ldquo;{profile.bio}&rdquo;
           </p>
         )}
 
-        {/* Cultural Passport Preferences Summary */}
-        <div className="pt-3 border-t border-raasta-borderSubtle space-y-2.5">
+        {/* Cultural Passport Preferences */}
+        <div className="pt-2 border-t border-raasta-borderSubtle space-y-2.5">
           <div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-raasta-inkMuted block mb-1">
               Active Interests ({profile.preferences.categories.length})
@@ -84,9 +108,9 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
               {profile.preferences.categories.map((cat) => (
                 <span
                   key={cat}
-                  className="text-[11px] font-semibold bg-raasta-primaryLight text-raasta-primary px-2.5 py-1 rounded-full border border-raasta-border"
+                  className="text-[11px] font-semibold bg-raasta-primaryLight text-raasta-primary px-2.5 py-0.5 rounded-full border border-raasta-border"
                 >
-                  {cat.replace(/_/g, " ")}
+                  {CATEGORY_NAMES[cat] || cat.replace(/_/g, " ")}
                 </span>
               ))}
             </div>
@@ -137,42 +161,23 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="pt-2 border-t border-raasta-borderSubtle flex flex-col space-y-2">
+        {/* Quick Navigation: Saved & Benchmark */}
+        <div className="pt-2 border-t border-raasta-borderSubtle grid grid-cols-2 gap-2">
           <button
-            onClick={onEditProfile}
-            className="w-full py-2 px-3 rounded-xl bg-raasta-subtle hover:bg-raasta-primaryLight text-raasta-ink hover:text-raasta-primary text-xs font-semibold transition-all border border-raasta-border text-center"
+            onClick={onGoToSaved}
+            className="py-2.5 px-3 rounded-2xl bg-white hover:bg-raasta-subtle text-raasta-ink text-xs font-semibold border border-raasta-border flex items-center justify-center space-x-1.5 shadow-subtle transition-all"
           >
-            Edit Profile & Preferences
+            <Bookmark className="w-3.5 h-3.5 text-raasta-primary" />
+            <span>Saved ({savedCount})</span>
           </button>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={onGoToSaved}
-              className="py-2 px-2.5 rounded-xl bg-white hover:bg-raasta-subtle text-raasta-ink text-[11px] font-semibold border border-raasta-border flex items-center justify-center space-x-1"
-            >
-              <Bookmark className="w-3.5 h-3.5 text-raasta-primary" />
-              <span>Saved ({savedCount})</span>
-            </button>
-            <button
-              onClick={onGoToCompare}
-              className="py-2 px-2.5 rounded-xl bg-white hover:bg-raasta-subtle text-raasta-ink text-[11px] font-semibold border border-raasta-border flex items-center justify-center space-x-1"
-            >
-              <GitCompare className="w-3.5 h-3.5 text-raasta-primary" />
-              <span>Benchmark</span>
-            </button>
-          </div>
+          <button
+            onClick={onGoToCompare}
+            className="py-2.5 px-3 rounded-2xl bg-white hover:bg-raasta-subtle text-raasta-ink text-xs font-semibold border border-raasta-border flex items-center justify-center space-x-1.5 shadow-subtle transition-all"
+          >
+            <GitCompare className="w-3.5 h-3.5 text-raasta-primary" />
+            <span>Benchmark</span>
+          </button>
         </div>
-      </div>
-
-      {/* Intelligence & Data Provenance Card */}
-      <div className="bg-white rounded-3xl p-4 shadow-card border border-raasta-border space-y-2 text-xs">
-        <div className="flex items-center space-x-2 text-raasta-primary font-bold text-xs">
-          <ShieldCheck className="w-4 h-4" />
-          <span>Cultural Intelligence</span>
-        </div>
-        <p className="text-[11px] text-raasta-inkMuted leading-relaxed">
-          Powered by real-time Qloo taste correlation and 18 source-verified Pune cultural spaces.
-        </p>
       </div>
     </aside>
   );

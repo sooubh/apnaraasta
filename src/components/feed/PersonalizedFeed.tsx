@@ -2,26 +2,22 @@
 
 import React, { useState, useMemo } from "react";
 import {
-  Compass,
   MapPin,
   Clock,
   ExternalLink,
   ShieldCheck,
-  Tag,
-  Filter,
-  Users,
-  Wallet,
-  Sparkles as SparklesStub, // not used
-  CheckCircle2,
   Calendar,
   Layers,
+  Bookmark,
+  LogIn,
 } from "lucide-react";
-import { Pathway, QlooEvidence, UserPreferences } from "@/lib/types/pathway";
-import { Activity, ActivityCategory } from "@/lib/types/activity";
+import { Pathway, QlooEvidence } from "@/lib/types/pathway";
+import { Activity } from "@/lib/types/activity";
 import { UserProfile } from "@/lib/types/profile";
 import { PUNE_ACTIVITIES } from "@/data/puneActivities";
 import { APPROVED_CATEGORIES } from "@/lib/constants";
 import { PathwayView } from "../pathway/PathwayView";
+import { useAuth } from "@/lib/firebase/authContext";
 
 interface PersonalizedFeedProps {
   profile: UserProfile;
@@ -35,6 +31,7 @@ interface PersonalizedFeedProps {
   onEditPreferences: () => void;
   onSavePathway: () => void;
   onGoToCompare: () => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
@@ -49,7 +46,9 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
   onEditPreferences,
   onSavePathway,
   onGoToCompare,
+  onOpenAuthModal,
 }) => {
+  const { user } = useAuth();
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>("all");
 
   // Filter activities for user's home area or nearby
@@ -82,86 +81,85 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
   }, [activeCategoryFilter]);
 
   return (
-    <div className="space-y-8 flex-1 w-full min-w-0">
-      {/* Personalized Welcome Banner */}
-      <div className="bg-gradient-to-br from-[#6E5BF6] via-[#7B68F8] to-[#9E92FE] rounded-3xl p-6 sm:p-8 text-white shadow-floating relative overflow-hidden">
-        <div className="relative z-10 space-y-2 max-w-xl">
-          <span className="inline-flex items-center text-[11px] font-bold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full uppercase tracking-wider text-white">
-            <Compass className="w-3 h-3 mr-1.5" />
-            Personalized Pune Feed
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-snug">
-            Welcome back, {profile.displayName}
+    <div className="space-y-6 flex-1 w-full min-w-0">
+      {/* On-Point, Clean Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-raasta-border/70">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-raasta-ink tracking-tight">
+            Personalized Pune Pathway
           </h1>
-          <p className="text-xs sm:text-sm text-white/90 leading-relaxed">
-            Curated around your home base in{" "}
-            <span className="font-semibold underline decoration-white/40">
-              {profile.homeArea}
-            </span>{" "}
-            and your taste in{" "}
-            {profile.preferences.categories
-              .map((c) => c.replace(/_/g, " "))
-              .slice(0, 3)
-              .join(", ")}
-            .
+          <p className="text-xs text-raasta-inkMuted mt-0.5">
+            Curated for <span className="font-semibold text-raasta-ink">{profile.homeArea}</span> based on your taste and weekend rhythm.
           </p>
         </div>
-        {/* Decorative circle */}
-        <div className="absolute -bottom-10 -right-10 w-44 h-44 rounded-full bg-white/10 blur-xl pointer-events-none" />
       </div>
 
-      {/* Hero 3-Step Curated Pathway */}
-      {pathway ? (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
+      {/* Guest Mode: Ask to login to save to cloud, else cleanly preserve in browser */}
+      {!user && (
+        <div className="bg-white rounded-2xl p-4 border border-raasta-border shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-full bg-raasta-primaryLight text-raasta-primary flex items-center justify-center shrink-0">
+              <Bookmark className="w-4 h-4" />
+            </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-raasta-ink tracking-tight flex items-center space-x-2">
-                <span>Your Personalized 3-Step Pathway</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-raasta-primaryLight text-raasta-primary border border-raasta-border">
-                  Qloo Optimized
-                </span>
-              </h2>
-              <p className="text-xs text-raasta-inkMuted mt-0.5">
-                A sequenced journey designed to take you from a low-barrier first visit to weekly community belonging.
+              <span className="font-bold text-xs text-raasta-ink block">
+                Preserved in this browser
+              </span>
+              <p className="text-[11px] text-raasta-inkMuted">
+                Sign in with Google to sync and save your profile & pathways permanently.
               </p>
             </div>
           </div>
+          {onOpenAuthModal && (
+            <button
+              onClick={onOpenAuthModal}
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-full bg-raasta-primary hover:bg-raasta-primaryHover text-white text-xs font-bold transition-all shadow-subtle shrink-0"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign in to Cloud Sync</span>
+            </button>
+          )}
+        </div>
+      )}
 
-          <PathwayView
-            pathway={pathway}
-            qlooEvidence={qlooEvidence}
-            method={method}
-            onRegenerate={onRegenerate}
-            onEditPreferences={onEditPreferences}
-            onSavePathway={onSavePathway}
-            onGoToCompare={onGoToCompare}
-            isSaving={isSaving}
-            isRegenerating={isLoading}
-            isSaved={isSaved}
-          />
-        </section>
+      {/* 3-Step Curated Pathway (Prominent Big-Image Cards) */}
+      {pathway ? (
+        <PathwayView
+          pathway={pathway}
+          qlooEvidence={qlooEvidence}
+          method={method}
+          onRegenerate={onRegenerate}
+          onEditPreferences={onEditPreferences}
+          onSavePathway={onSavePathway}
+          onGoToCompare={onGoToCompare}
+          isSaving={isSaving}
+          isRegenerating={isLoading}
+          isSaved={isSaved}
+        />
       ) : (
-        <div className="bg-white rounded-3xl p-8 shadow-card border border-raasta-border text-center space-y-4">
-          <Compass className="w-10 h-10 text-raasta-primary mx-auto animate-pulse" />
+        <div className="bg-white rounded-3xl p-8 shadow-card border border-raasta-border text-center space-y-3">
+          <div className="w-10 h-10 rounded-full bg-raasta-primaryLight text-raasta-primary mx-auto flex items-center justify-center animate-pulse">
+            <MapPin className="w-5 h-5" />
+          </div>
           <div>
             <h3 className="font-bold text-base text-raasta-ink">Curating your Pune Pathway...</h3>
-            <p className="text-xs text-raasta-inkMuted mt-1">
-              Matching verified spaces with your cultural taste signals.
+            <p className="text-xs text-raasta-inkMuted mt-0.5">
+              Finding verified spaces tailored to your comfort and taste.
             </p>
           </div>
         </div>
       )}
 
       {/* SECTION: IN YOUR NEIGHBORHOOD */}
-      <section className="space-y-4">
+      <section className="space-y-3.5 pt-2">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-raasta-ink tracking-tight flex items-center space-x-2">
               <MapPin className="w-4 h-4 text-raasta-primary" />
-              <span>In & Around {profile.homeArea}</span>
+              <span>More Places in {profile.homeArea}</span>
             </h3>
-            <p className="text-xs text-raasta-inkMuted mt-0.5">
-              Source-verified places and communities accessible from your home base.
+            <p className="text-xs text-raasta-inkMuted">
+              Verified local spaces right near your home base.
             </p>
           </div>
         </div>
@@ -173,22 +171,22 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
             ))
           ) : (
             <div className="col-span-2 p-6 bg-white rounded-3xl border border-raasta-border text-center text-xs text-raasta-inkMuted">
-              No direct venues tagged in {profile.homeArea}. Showing wider Pune circles below.
+              No additional spots recorded in {profile.homeArea}. Showing wider Pune circles below.
             </div>
           )}
         </div>
       </section>
 
       {/* SECTION: WEEKEND RECURRING CIRCLES */}
-      <section className="space-y-4">
+      <section className="space-y-3.5 pt-2">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-raasta-ink tracking-tight flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-raasta-primary" />
-              <span>Recurring Weekend Circles in Pune</span>
+              <span>Weekend Community Circles</span>
             </h3>
-            <p className="text-xs text-raasta-inkMuted mt-0.5">
-              Welcoming groups meeting regularly on weekends where you can build regular rhythms.
+            <p className="text-xs text-raasta-inkMuted">
+              Regular groups meeting every weekend where you can build lasting rhythms.
             </p>
           </div>
         </div>
@@ -201,14 +199,14 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
       </section>
 
       {/* SECTION: EXPLORE BY CATEGORY */}
-      <section className="space-y-4">
+      <section className="space-y-3.5 pt-2">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-raasta-ink tracking-tight flex items-center space-x-2">
               <Layers className="w-4 h-4 text-raasta-primary" />
-              <span>Explore Verified Pune Spaces by Category</span>
+              <span>Explore Verified Spaces by Category</span>
             </h3>
-            <p className="text-xs text-raasta-inkMuted mt-0.5">
+            <p className="text-xs text-raasta-inkMuted">
               Browse all 18 source-checked cultural hubs across Pune.
             </p>
           </div>
@@ -296,7 +294,7 @@ const ActivityFeedCard: React.FC<ActivityFeedCardProps> = ({ activity, compact =
           </div>
         )}
 
-        <div className="p-5 space-y-2.5">
+        <div className="p-5 space-y-2">
           <h4 className="font-bold text-base sm:text-lg text-raasta-ink leading-snug line-clamp-1">
             {activity.title}
           </h4>
