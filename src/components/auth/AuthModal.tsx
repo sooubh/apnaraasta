@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Sparkles, AlertCircle } from "lucide-react";
+import { X, Bookmark, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/firebase/authContext";
 
 interface AuthModalProps {
@@ -45,7 +45,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-floating border border-raasta-border animate-in fade-in zoom-in-95 duration-150">
         <div className="flex justify-between items-center mb-4">
           <div className="w-8 h-8 rounded-2xl bg-raasta-primaryLight text-raasta-primary flex items-center justify-center">
-            <Sparkles className="w-4 h-4" />
+            <Bookmark className="w-4 h-4" />
           </div>
           <button
             onClick={onClose}

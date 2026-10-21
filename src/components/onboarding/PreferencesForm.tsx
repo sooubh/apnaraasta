@@ -11,7 +11,6 @@ import {
   MapPin,
   Plus,
   X,
-  Sparkles,
   Navigation,
   Check,
 } from "lucide-react";
@@ -521,8 +520,8 @@ export const PreferencesForm: React.FC<PreferencesFormProps> = ({
         disabled={isLoading}
         className="w-full py-4 px-6 rounded-full bg-raasta-primary hover:bg-raasta-primaryHover text-white font-bold text-sm shadow-floating flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-50"
       >
-        <Sparkles className="w-5 h-5" />
-        <span>{isLoading ? "Generating Your Pathway..." : "Discover My 3-Step Pathway"}</span>
+        <Compass className="w-4 h-4" />
+        <span>{isLoading ? "Curating Your Pathway..." : "Discover My 3-Step Pathway"}</span>
       </button>
     </form>
   );

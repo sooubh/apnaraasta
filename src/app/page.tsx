@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  Sparkles,
   ArrowRight,
   Compass,
   AlertCircle,
@@ -189,14 +188,14 @@ export default function Home() {
               <div className="mb-6 bg-gradient-to-br from-[#6E5BF6] via-[#7B68F8] to-[#9E92FE] rounded-3xl p-6 text-white shadow-floating relative overflow-hidden">
                 <div className="relative z-10 space-y-2.5">
                   <span className="inline-flex items-center text-[11px] font-bold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full uppercase tracking-wider text-white">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Pune Cultural Intelligence
+                    <Compass className="w-3 h-3 mr-1.5" />
+                    Pune Cultural Pathways
                   </span>
                   <h1 className="text-2xl font-bold tracking-tight leading-snug">
-                    Turn Your Taste Into Your Community
+                    Find Your People in Pune
                   </h1>
-                  <p className="text-xs text-white/85 leading-relaxed max-w-sm">
-                    Move beyond generic event listings. Discover a personalized 3-step cultural pathway in Pune powered by Qloo cultural affinity and verified local venues.
+                  <p className="text-xs text-white/90 leading-relaxed max-w-sm">
+                    Move beyond generic event listings. Discover a thoughtful 3-step journey from an easy first visit to weekly belonging at verified local spaces.
                   </p>
                 </div>
                 {/* Decorative background shape */}
@@ -215,18 +214,18 @@ export default function Home() {
               </div>
             )}
 
-            {/* Loading / Agent Reasoning State */}
+            {/* Loading / Curating State */}
             {isLoading && (
               <div className="bg-white rounded-3xl p-8 shadow-card border border-raasta-borderSubtle text-center space-y-4 my-8 animate-pulse">
                 <div className="w-12 h-12 rounded-full bg-raasta-primaryLight text-raasta-primary mx-auto flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <Loader2 className="w-6 h-6 animate-spin text-raasta-primary" />
                 </div>
                 <div>
                   <h3 className="font-bold text-base text-raasta-ink">
-                    Reasoning Your Pune Pathway...
+                    Curating Your Community Pathway...
                   </h3>
                   <p className="text-xs text-raasta-inkMuted mt-1">
-                    Resolving taste signals via Qloo · Filtering verified Pune venues · Sequencing 3-step community pathway
+                    Matching neighborhood spots · Checking verified schedules · Sequencing from an easy start to regular rhythms
                   </p>
                 </div>
               </div>

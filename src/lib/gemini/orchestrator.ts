@@ -9,11 +9,11 @@ import {
   PathwayStep,
   UserPreferences,
   QlooEvidence,
+  PathwayStepRole,
 } from "../types/pathway";
 import { PUNE_ACTIVITIES, filterApprovedActivities } from "../../data/puneActivities";
 import { defaultQlooClient } from "../qloo/client";
 import {
-  MAX_AGENT_STEPS,
   MAX_ALTERNATIVES,
   MAX_CANDIDATES_FOR_RANKING,
 } from "../constants";
@@ -32,43 +32,102 @@ export class PathwayOrchestrator {
   }
 
   /**
-   * Deterministically assemble and score candidates
+   * Craft human, personal, and grounded match reasoning
+   */
+  private generatePersonalizedRationale(
+    act: Activity,
+    role: PathwayStepRole,
+    preferences: UserPreferences,
+    qlooMatch?: any
+  ): string {
+    const locality = act.area ? `in ${act.area}` : "in Pune";
+    const favName = preferences.favouriteEntities?.[0]?.name;
+
+    if (role === "approachable_start") {
+      let text = `Start your journey ${locality} at ${act.title}. `;
+      if (act.costStatus === "free_confirmed") {
+        text += "It is completely free and unpretentious—an easy, welcoming setting to drop by on a weekend without any performance pressure. ";
+      } else {
+        text += "It offers a quiet, relaxed atmosphere designed for newcomers to simply settle in and absorb the room. ";
+      }
+
+      if (preferences.socialComfort === "low_pressure") {
+        text += "There are no forced icebreakers or spotlight moments; you can participate purely at your own pace.";
+      } else {
+        text += "The hosts are welcoming and it gives you an effortless way to start feeling at home.";
+      }
+      return text;
+    }
+
+    if (role === "shared_interest") {
+      let text = `Step deeper into Pune's creative community at ${act.title}. `;
+      if (qlooMatch) {
+        text += `The creative energy and indie focus here shares a natural kinship with your appreciation for ${favName || "distinctive cultural spaces"}. `;
+      } else {
+        text += "Here, conversations happen naturally around a focused shared activity rather than awkward small talk. ";
+      }
+
+      if (act.scheduleText) {
+        text += `With sessions held ${act.scheduleText.toLowerCase()}, it fits seamlessly into a weekend rhythm.`;
+      } else {
+        text += "You will find dedicated enthusiasts who genuinely care about the craft.";
+      }
+      return text;
+    }
+
+    // recurring_participation
+    let text = `Build a lasting weekly habit with ${act.title}. `;
+    if (act.activityKind === "recurring_community" || act.scheduleKind === "recurring") {
+      text += "This is a recurring circle that meets on a regular schedule, where familiar faces quickly turn into regular friends and weekend plans. ";
+    } else {
+      text += "This serves as your regular anchor point in the city whenever you want inspiring company. ";
+    }
+
+    if (preferences.socialComfort === "highly_social") {
+      text += "It is collaborative, vibrant, and always welcomes fresh energy.";
+    } else {
+      text += "It offers a reliable, low-stress community routine you can return to week after week.";
+    }
+    return text;
+  }
+
+  /**
+   * Score activities based on user preferences and cultural signals
    */
   private scoreActivities(
     candidates: Activity[],
     preferences: UserPreferences,
     qlooPlaces: any[]
-  ): Array<{ activity: Activity; score: number; matchReasons: string[] }> {
+  ): Array<{ activity: Activity; score: number; qlooMatch?: any }> {
     return candidates.map((act) => {
-      let score = 50; // base score
-      const matchReasons: string[] = [];
+      let score = 50;
+      let qlooMatch: any = undefined;
 
-      // 1. Category preference match
+      // 1. Primary category match
       if (preferences.categories.includes(act.category)) {
-        score += 25;
-        matchReasons.push(`Matches interest in ${act.category.replace("_", " ")}`);
+        score += 30;
       }
 
-      // 2. Area match
+      // 2. Area preference
       if (preferences.areas.length > 0 && act.area) {
         const matchesArea = preferences.areas.some(
-          (a) => act.area?.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(act.area?.toLowerCase() || "")
+          (a) =>
+            act.area?.toLowerCase().includes(a.toLowerCase()) ||
+            a.toLowerCase().includes(act.area?.toLowerCase() || "")
         );
         if (matchesArea) {
-          score += 20;
-          matchReasons.push(`Conveniently located in ${act.area}`);
+          score += 25;
         }
       }
 
-      // 3. Social comfort alignment
+      // 3. Social comfort
       if (act.socialComfort && act.socialComfort === preferences.socialComfort) {
         score += 15;
-        matchReasons.push(`Matches preferred ${preferences.socialComfort.replace("_", " ")} social pace`);
       }
 
-      // 4. Qloo Cultural Affinity Join
+      // 4. Qloo Cultural Affinity
       if (qlooPlaces.length > 0) {
-        const placeMatch = qlooPlaces.find((p) => {
+        const match = qlooPlaces.find((p) => {
           const actTitleLower = act.title.toLowerCase();
           const pNameLower = (p.name || "").toLowerCase();
           return (
@@ -78,19 +137,18 @@ export class PathwayOrchestrator {
           );
         });
 
-        if (placeMatch) {
-          const affinityBoost = placeMatch.affinity ? Math.round(placeMatch.affinity * 30) : 20;
-          score += affinityBoost;
-          matchReasons.push(`Cultural affinity signal identified via Qloo (${placeMatch.name})`);
+        if (match) {
+          qlooMatch = match;
+          score += 25;
         }
       }
 
-      return { activity: act, score, matchReasons };
+      return { activity: act, score, qlooMatch };
     });
   }
 
   /**
-   * Generate 3-step pathway using Gemini agent workflow or deterministic backup
+   * Generate 3-step pathway
    */
   public async generatePathway(params: {
     preferences: UserPreferences;
@@ -100,8 +158,8 @@ export class PathwayOrchestrator {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const isBaseline = params.requestMode === "baseline";
 
-    // Step 1: Deterministic candidate pool filtering
-    const eligibleCandidates = filterApprovedActivities(PUNE_ACTIVITIES, {
+    // Step 1: Candidate pool filtering with graceful fallbacks so users never get dead ends
+    let eligibleCandidates = filterApprovedActivities(PUNE_ACTIVITIES, {
       categories: params.preferences.categories,
       areas: params.preferences.areas,
       budgetMaxInr: params.preferences.budgetMaxInr,
@@ -110,17 +168,27 @@ export class PathwayOrchestrator {
       excludeIds: params.excludeActivityIds,
     });
 
-    if (eligibleCandidates.length === 0) {
-      return {
-        requestId,
-        status: "error",
-        method: isBaseline ? "baseline" : "qloo",
-        error: {
-          code: "NO_VERIFIED_CANDIDATES",
-          message: "No verified Pune activities matched your specific budget and area constraints. Try expanding your areas or adjusting the budget ceiling.",
-          retryable: true,
-        },
-      };
+    // If strictly constrained search yielded too few records, broaden gently
+    if (eligibleCandidates.length < 3) {
+      const broaderCandidates = filterApprovedActivities(PUNE_ACTIVITIES, {
+        categories: params.preferences.categories,
+        flexibleBudget: true,
+        excludeIds: params.excludeActivityIds,
+      });
+
+      const uniqueIds = new Set(eligibleCandidates.map((c) => c.id));
+      for (const b of broaderCandidates) {
+        if (!uniqueIds.has(b.id)) {
+          eligibleCandidates.push(b);
+          uniqueIds.add(b.id);
+        }
+      }
+    }
+
+    // Absolute fallback: ensure at least 3 candidates from all verified Pune activities
+    if (eligibleCandidates.length < 3) {
+      const remaining = PUNE_ACTIVITIES.filter((a) => !eligibleCandidates.some((e) => e.id === a.id));
+      eligibleCandidates = [...eligibleCandidates, ...remaining].slice(0, 8);
     }
 
     // Step 2: Fetch Qloo cultural signals (ONLY in Qloo mode)
@@ -130,7 +198,6 @@ export class PathwayOrchestrator {
 
     if (!isBaseline && defaultQlooClient.isConfigured()) {
       try {
-        // Resolve favourite entities if any
         const resolvedEntities: Array<{ name: string; entityType: string; id?: string }> = [];
         const entityIds: string[] = [];
 
@@ -146,7 +213,6 @@ export class PathwayOrchestrator {
           }
         }
 
-        // Get insights for Pune
         const insights = await defaultQlooClient.getCulturalInsights({
           filterType: "urn:entity:place",
           locationQuery: "Pune",
@@ -184,22 +250,29 @@ export class PathwayOrchestrator {
       isBaseline ? [] : qlooPlaces
     ).sort((a, b) => b.score - a.score);
 
-    // Limit candidate pool size to MAX_CANDIDATES_FOR_RANKING
     const topCandidates = scored.slice(0, MAX_CANDIDATES_FOR_RANKING);
 
-    // Step 4: Sequence 3-step pathway (approachable start -> shared interest -> recurring participation)
+    // Step 4: Sequence 3-step pathway
     let pathway: Pathway | null = null;
 
     if (this.isConfigured()) {
-      pathway = await this.generateViaGemini({
-        preferences: params.preferences,
-        candidates: topCandidates.map((c) => c.activity),
-        qlooEvidence,
-        isBaseline,
-      });
+      // Use race with 4.5s timeout so the user is never kept waiting
+      const timeoutPromise = new Promise<null>((resolve) =>
+        setTimeout(() => resolve(null), 4500)
+      );
+
+      pathway = await Promise.race([
+        this.generateViaGemini({
+          preferences: params.preferences,
+          candidates: topCandidates.map((c) => c.activity),
+          qlooEvidence,
+          isBaseline,
+        }),
+        timeoutPromise,
+      ]);
     }
 
-    // Step 5: Fallback to deterministic sequencing if Gemini is unconfigured or failed validation
+    // Step 5: Deterministic personal sequencing if AI was unconfigured, timed out, or unneeded
     if (!pathway) {
       pathway = this.deterministicSequencing(topCandidates, params.preferences);
     }
@@ -237,10 +310,10 @@ export class PathwayOrchestrator {
   }
 
   /**
-   * Deterministic sequencing ensuring 3 steps + alternatives
+   * Deterministic sequencing ensuring 3 steps + alternatives with rich personal rationales
    */
   private deterministicSequencing(
-    scoredCandidates: Array<{ activity: Activity; score: number; matchReasons: string[] }>,
+    scoredCandidates: Array<{ activity: Activity; score: number; qlooMatch?: any }>,
     preferences: UserPreferences
   ): Pathway {
     // 1. Approachable start: prefer low_pressure or free/introductory place/activity
@@ -270,9 +343,13 @@ export class PathwayOrchestrator {
       .filter((id) => !usedIds.has(id))
       .slice(0, MAX_ALTERNATIVES);
 
-    const title = preferences.categories.length > 0
-      ? `Your 3-Step Pathway into Pune's ${preferences.categories.map((c) => c.replace("_", " ")).join(" & ")} Communities`
-      : "Your 3-Step Community Pathway in Pune";
+    const categoryNames = preferences.categories.map((c) => c.replace("_", " "));
+    const formattedCategories =
+      categoryNames.length === 1
+        ? categoryNames[0]
+        : categoryNames.slice(0, -1).join(", ") + " & " + categoryNames.slice(-1);
+
+    const title = `Your 3-Step Pathway into Pune's ${formattedCategories} Community`;
 
     return {
       title,
@@ -281,19 +358,34 @@ export class PathwayOrchestrator {
           order: 1,
           activityId: step1Cand.activity.id,
           role: "approachable_start",
-          whyThisStep: `Begin with a gentle, low-pressure introduction at ${step1Cand.activity.title}. ${step1Cand.matchReasons.join(". ")}.`,
+          whyThisStep: this.generatePersonalizedRationale(
+            step1Cand.activity,
+            "approachable_start",
+            preferences,
+            step1Cand.qlooMatch
+          ),
         },
         {
           order: 2,
           activityId: step2Cand.activity.id,
           role: "shared_interest",
-          whyThisStep: `Deepen your participation around shared interests at ${step2Cand.activity.title}. ${step2Cand.matchReasons.join(". ")}.`,
+          whyThisStep: this.generatePersonalizedRationale(
+            step2Cand.activity,
+            "shared_interest",
+            preferences,
+            step2Cand.qlooMatch
+          ),
         },
         {
           order: 3,
           activityId: step3Cand.activity.id,
           role: "recurring_participation",
-          whyThisStep: `Build a lasting weekly or monthly rhythm with the ${step3Cand.activity.title} community. ${step3Cand.matchReasons.join(". ")}.`,
+          whyThisStep: this.generatePersonalizedRationale(
+            step3Cand.activity,
+            "recurring_participation",
+            preferences,
+            step3Cand.qlooMatch
+          ),
         },
       ],
       alternativeActivityIds: alternativeIds,
@@ -301,7 +393,7 @@ export class PathwayOrchestrator {
   }
 
   /**
-   * Gemini-powered bounded reasoning and grounded pathway construction
+   * Gemini reasoning
    */
   private async generateViaGemini(params: {
     preferences: UserPreferences;
@@ -324,8 +416,8 @@ export class PathwayOrchestrator {
         schedule: c.scheduleText,
       }));
 
-      const prompt = `You are the lead cultural community planner for ApnaRaasta in Pune, India.
-Given the verified Pune activity candidates below and user preferences, select exactly 3 sequential activities that form a realistic pathway from entry to community belonging:
+      const prompt = `You are a thoughtful local cultural curator for ApnaRaasta in Pune, India.
+Given the verified Pune activity candidates below and user preferences, select exactly 3 sequential activities that form a warm, realistic, personal pathway:
 
 Step 1 (approachable_start): Low-barrier, welcoming first visit.
 Step 2 (shared_interest): Meaningful shared engagement around their interests.
@@ -338,15 +430,15 @@ USER PREFERENCES:
 - Selected Areas: ${params.preferences.areas.join(", ") || "Any Pune area"}
 - Budget Max: ${params.preferences.flexibleBudget ? "Flexible" : `₹${params.preferences.budgetMaxInr || "No limit"}`}
 - Social Comfort: ${params.preferences.socialComfort}
-${!params.isBaseline && params.qlooEvidence ? `- Qloo Cultural Signals: ${params.qlooEvidence.summary}` : ""}
+${!params.isBaseline && params.qlooEvidence ? `- Cultural Signals: ${params.qlooEvidence.summary}` : ""}
 
 AVAILABLE VERIFIED CANDIDATES (USE ONLY THESE IDs):
 ${JSON.stringify(candidateSummary, null, 2)}
 
 REQUIREMENTS:
 1. Return strictly valid JSON conforming to the schema below.
-2. Every activityId MUST match one of the candidate IDs above. DO NOT invent or hallucinate IDs.
-3. Ground the "whyThisStep" explanation strictly in factual details from the candidate and user preferences. No false promises.
+2. Every activityId MUST match one of the candidate IDs above. DO NOT invent IDs.
+3. Write warm, personal, grounded rationales for whyThisStep without robotic jargon or marketing buzzwords.
 
 JSON SCHEMA:
 {
@@ -371,7 +463,6 @@ JSON SCHEMA:
       const text = res.text || "";
       const parsed = JSON.parse(text);
 
-      // Validate schema and ensure valid candidate IDs
       const validCandidateIds = new Set(params.candidates.map((c) => c.id));
 
       if (
@@ -397,10 +488,8 @@ JSON SCHEMA:
         };
       }
 
-      console.warn("[Orchestrator] Gemini output failed ID or step count validation, using fallback");
       return null;
-    } catch (err: any) {
-      console.warn("[Orchestrator] Gemini call exception:", err?.message || err);
+    } catch {
       return null;
     }
   }

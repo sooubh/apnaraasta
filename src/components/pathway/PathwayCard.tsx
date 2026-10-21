@@ -6,7 +6,7 @@ import {
   Calendar,
   ShieldCheck,
   ExternalLink,
-  Sparkles,
+  Heart,
   Info,
   Clock,
   ArrowRightLeft,
@@ -137,8 +137,8 @@ export const PathwayCard: React.FC<PathwayCardProps> = ({
       {/* "Why This Fits You" Grounded Explanation */}
       <div className="bg-raasta-primaryLight/40 border border-raasta-primary/20 rounded-2xl p-3.5 mb-3.5">
         <div className="flex items-center space-x-1.5 text-xs font-bold text-raasta-primary mb-1">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Why this fits your pathway</span>
+          <Heart className="w-3.5 h-3.5" />
+          <span>Why this is right for you</span>
         </div>
         <p className="text-xs text-raasta-ink leading-relaxed font-normal">
           {whyThisStep}

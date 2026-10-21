@@ -2,13 +2,14 @@
 
 import React, { useState } from "react";
 import {
-  Sparkles,
+  Compass,
   Bot,
   ShieldCheck,
   CheckCircle2,
   Info,
   Scale,
   ArrowRight,
+  GitCompare,
 } from "lucide-react";
 import { ComparePathwaysResponse, PathwayStep } from "@/lib/types/pathway";
 
@@ -50,7 +51,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
             disabled={isLoading}
             className="px-5 py-2.5 rounded-full bg-raasta-ink hover:bg-neutral-800 text-white font-bold text-xs shadow-sm flex items-center space-x-2 transition-all disabled:opacity-50"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <GitCompare className="w-3.5 h-3.5" />
             <span>{isLoading ? "Running Comparative Benchmark..." : "Run New Comparison"}</span>
           </button>
         </div>
@@ -139,7 +140,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                     : "text-raasta-inkMuted hover:text-raasta-ink"
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Compass className="w-3.5 h-3.5" />
                 <span>Qloo-Grounded Pathway</span>
               </button>
 

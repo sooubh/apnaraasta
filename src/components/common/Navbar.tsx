@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, MapPin, User as UserIcon, LogOut } from "lucide-react";
+import { Compass, MapPin, User as UserIcon, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/firebase/authContext";
 import { TARGET_CITY } from "@/lib/constants";
 
@@ -18,7 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
         {/* Brand */}
         <div className="flex items-center space-x-2.5">
           <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-raasta-primary to-[#8A7CFA] flex items-center justify-center text-white shadow-sm">
-            <Sparkles className="w-5 h-5 text-white" />
+            <Compass className="w-5 h-5 text-white" />
           </div>
           <div>
             <div className="flex items-center space-x-1.5">

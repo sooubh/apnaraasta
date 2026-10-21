@@ -5,7 +5,6 @@ import {
   Bookmark,
   Trash2,
   Calendar,
-  Sparkles,
   ExternalLink,
   ShieldCheck,
   User,

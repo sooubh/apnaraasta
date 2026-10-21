@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import {
-  Sparkles,
+  Compass,
   RefreshCw,
   SlidersHorizontal,
   Bookmark,
@@ -84,8 +84,8 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           {method === "qloo" ? (
             <div className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-raasta-primaryLight to-[#EAE6FE] text-raasta-primary px-3 py-1 rounded-full text-xs font-bold border border-raasta-border">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Qloo Cultural Intelligence Active</span>
+              <Compass className="w-3.5 h-3.5" />
+              <span>Cultural Taste Signals Active</span>
             </div>
           ) : (
             <div className="inline-flex items-center space-x-1.5 bg-neutral-100 text-neutral-700 px-3 py-1 rounded-full text-xs font-bold">
