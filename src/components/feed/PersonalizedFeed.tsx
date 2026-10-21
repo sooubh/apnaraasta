@@ -17,6 +17,7 @@ import { UserProfile } from "@/lib/types/profile";
 import { PUNE_ACTIVITIES } from "@/data/puneActivities";
 import { APPROVED_CATEGORIES } from "@/lib/constants";
 import { PathwayView } from "../pathway/PathwayView";
+import { OverviewDashboard } from "../dashboard/OverviewDashboard";
 import { useAuth } from "@/lib/firebase/authContext";
 
 interface PersonalizedFeedProps {
@@ -27,9 +28,12 @@ interface PersonalizedFeedProps {
   isLoading: boolean;
   isSaving: boolean;
   isSaved: boolean;
+  savedCount?: number;
   onRegenerate: () => void;
   onEditPreferences: () => void;
   onSavePathway: () => void;
+  onGoToProfile?: () => void;
+  onGoToSaved?: () => void;
   onOpenAuthModal?: () => void;
 }
 
@@ -41,9 +45,12 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
   isLoading,
   isSaving,
   isSaved,
+  savedCount = 0,
   onRegenerate,
   onEditPreferences,
   onSavePathway,
+  onGoToProfile,
+  onGoToSaved,
   onOpenAuthModal,
 }) => {
   const { user } = useAuth();
@@ -83,17 +90,22 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
 
   return (
     <div className="space-y-6 flex-1 w-full min-w-0">
-      {/* On-Point, Clean Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-raasta-border/70">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-raasta-ink tracking-tight">
-            Personalized Pune Pathway
-          </h1>
-          <p className="text-xs text-raasta-inkMuted mt-0.5">
-            Curated for <span className="font-semibold text-raasta-ink">{profile.homeArea}</span> based on your taste and weekend rhythm.
-          </p>
-        </div>
-      </div>
+      {/* CULTURAL OVERVIEW DASHBOARD */}
+      <OverviewDashboard
+        profile={profile}
+        pathway={pathway}
+        qlooEvidence={qlooEvidence}
+        neighborhoodCount={neighborhoodActivities.length}
+        circlesCount={weekendCircles.length}
+        catalogCount={PUNE_ACTIVITIES.length}
+        savedCount={savedCount}
+        isLoadingPathway={isLoading}
+        onRegenerate={onRegenerate}
+        onEditPreferences={onEditPreferences}
+        onGoToProfile={() => onGoToProfile && onGoToProfile()}
+        onGoToSaved={() => onGoToSaved && onGoToSaved()}
+        onOpenAuthModal={onOpenAuthModal}
+      />
 
       {/* Guest Mode: Ask to login to save to cloud, else cleanly preserve in browser */}
       {!user && (
@@ -124,34 +136,47 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
       )}
 
       {/* 3-Step Curated Pathway (Prominent Big-Image Cards) */}
-      {pathway ? (
-        <PathwayView
-          pathway={pathway}
-          qlooEvidence={qlooEvidence}
-          method={method}
-          onRegenerate={onRegenerate}
-          onEditPreferences={onEditPreferences}
-          onSavePathway={onSavePathway}
-          isSaving={isSaving}
-          isRegenerating={isLoading}
-          isSaved={isSaved}
-        />
-      ) : (
-        <div className="bg-white rounded-3xl p-8 shadow-card border border-raasta-border text-center space-y-3">
-          <div className="w-10 h-10 rounded-full bg-raasta-primaryLight text-raasta-primary mx-auto flex items-center justify-center animate-pulse">
-            <MapPin className="w-5 h-5" />
-          </div>
+      <div id="curated-pathway-section" className="space-y-3 pt-1">
+        <div className="flex items-center justify-between pb-1">
           <div>
-            <h3 className="font-bold text-base text-raasta-ink">Curating your Pune Pathway...</h3>
+            <h2 className="text-lg sm:text-xl font-bold text-raasta-ink tracking-tight">
+              Personalized Pune Pathway
+            </h2>
             <p className="text-xs text-raasta-inkMuted mt-0.5">
-              Finding verified spaces tailored to your comfort and taste.
+              Sequenced for <span className="font-semibold text-raasta-ink">{profile.homeArea}</span> based on your taste and weekend rhythm.
             </p>
           </div>
         </div>
-      )}
+
+        {pathway ? (
+          <PathwayView
+            pathway={pathway}
+            qlooEvidence={qlooEvidence}
+            method={method}
+            onRegenerate={onRegenerate}
+            onEditPreferences={onEditPreferences}
+            onSavePathway={onSavePathway}
+            isSaving={isSaving}
+            isRegenerating={isLoading}
+            isSaved={isSaved}
+          />
+        ) : (
+          <div className="bg-white rounded-3xl p-8 shadow-card border border-raasta-border text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-raasta-primaryLight text-raasta-primary mx-auto flex items-center justify-center animate-pulse">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-raasta-ink">Curating your Pune Pathway...</h3>
+              <p className="text-xs text-raasta-inkMuted mt-0.5">
+                Finding verified spaces tailored to your comfort and taste.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* SECTION: IN YOUR NEIGHBORHOOD */}
-      <section className="space-y-3.5 pt-2">
+      <section id="neighborhood-section" className="space-y-3.5 pt-2">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-raasta-ink tracking-tight flex items-center space-x-2">
@@ -178,7 +203,7 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
       </section>
 
       {/* SECTION: WEEKEND RECURRING CIRCLES */}
-      <section className="space-y-3.5 pt-2">
+      <section id="weekend-circles-section" className="space-y-3.5 pt-2">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-raasta-ink tracking-tight flex items-center space-x-2">
@@ -199,7 +224,7 @@ export const PersonalizedFeed: React.FC<PersonalizedFeedProps> = ({
       </section>
 
       {/* SECTION: EXPLORE BY CATEGORY */}
-      <section className="space-y-3.5 pt-2">
+      <section id="catalog-section" className="space-y-3.5 pt-2">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-raasta-ink tracking-tight flex items-center space-x-2">

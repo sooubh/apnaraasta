@@ -13,6 +13,7 @@ import { StepOnboarding } from "@/components/onboarding/StepOnboarding";
 import { PersonalizedFeed } from "@/components/feed/PersonalizedFeed";
 import { ProfileSidebar } from "@/components/profile/ProfileSidebar";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
+import { ProfileView } from "@/components/profile/ProfileView";
 import { SavedPathwaysView } from "@/components/saved/SavedPathwaysView";
 import { useAuth } from "@/lib/firebase/authContext";
 import { saveUserPathway, getUserPathways } from "@/lib/firebase/savedPathways";
@@ -213,6 +214,7 @@ export default function Home() {
                   profile={profile}
                   onEditProfile={() => setIsEditProfileModalOpen(true)}
                   onGoToSaved={() => setCurrentTab("saved")}
+                  onGoToProfile={() => setCurrentTab("profile")}
                   savedCount={savedCount}
                 />
 
@@ -236,9 +238,12 @@ export default function Home() {
                     isLoading={isLoading}
                     isSaving={isSaving}
                     isSaved={isSaved}
+                    savedCount={savedCount}
                     onRegenerate={handleRegenerate}
                     onEditPreferences={() => setIsEditProfileModalOpen(true)}
                     onSavePathway={handleSavePathway}
+                    onGoToProfile={() => setCurrentTab("profile")}
+                    onGoToSaved={() => setCurrentTab("saved")}
                     onOpenAuthModal={() => setIsAuthModalOpen(true)}
                   />
                 </div>
@@ -252,6 +257,17 @@ export default function Home() {
                   onOpenAuthModal={() => setIsAuthModalOpen(true)}
                 />
               </div>
+            )}
+
+            {/* Tab 3: Cultural Profile & Passport */}
+            {currentTab === "profile" && (
+              <ProfileView
+                profile={profile}
+                onEditProfile={() => setIsEditProfileModalOpen(true)}
+                onGoToSaved={() => setCurrentTab("saved")}
+                onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                savedCount={savedCount}
+              />
             )}
           </>
         )}

@@ -8,6 +8,8 @@ import {
   GitCompare,
   Wallet,
   Users,
+  User,
+  ArrowRight,
 } from "lucide-react";
 import { UserProfile } from "@/lib/types/profile";
 import { useAuth } from "@/lib/firebase/authContext";
@@ -16,6 +18,7 @@ interface ProfileSidebarProps {
   profile: UserProfile;
   onEditProfile: () => void;
   onGoToSaved: () => void;
+  onGoToProfile?: () => void;
   savedCount?: number;
 }
 
@@ -32,6 +35,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   profile,
   onEditProfile,
   onGoToSaved,
+  onGoToProfile,
   savedCount = 0,
 }) => {
   const { user } = useAuth();
@@ -159,8 +163,21 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             )}
         </div>
 
-        {/* Quick Navigation: Saved Pathways */}
-        <div className="pt-2 border-t border-raasta-borderSubtle">
+        {/* Quick Navigation: Saved Pathways & Profile */}
+        <div className="pt-2 border-t border-raasta-borderSubtle space-y-2">
+          {onGoToProfile && (
+            <button
+              onClick={onGoToProfile}
+              className="w-full py-2.5 px-3 rounded-2xl bg-raasta-subtle hover:bg-raasta-primaryLight text-raasta-ink hover:text-raasta-primary text-xs font-semibold border border-raasta-border flex items-center justify-between shadow-subtle transition-all group"
+            >
+              <span className="flex items-center space-x-1.5">
+                <User className="w-3.5 h-3.5 text-raasta-primary" />
+                <span>Cultural Passport</span>
+              </span>
+              <ArrowRight className="w-3.5 h-3.5 text-raasta-inkMuted group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          )}
+
           <button
             onClick={onGoToSaved}
             className="w-full py-2.5 px-3 rounded-2xl bg-white hover:bg-raasta-subtle text-raasta-ink text-xs font-semibold border border-raasta-border flex items-center justify-center space-x-1.5 shadow-subtle transition-all"

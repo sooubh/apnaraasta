@@ -85,6 +85,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               )}
             </button>
+            <button
+              onClick={() => onTabChange("profile")}
+              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                currentTab === "profile"
+                  ? "bg-raasta-ink text-white shadow-sm"
+                  : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"
+              }`}
+            >
+              <UserIcon className="w-3.5 h-3.5" />
+              <span>My Profile</span>
+            </button>
           </nav>
         )}
 
