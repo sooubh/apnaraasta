@@ -1,0 +1,151 @@
+rules_version = '2';
+
+// ===============================================================
+// ApnaRaasta - Production Hardened Cloud Firestore Security Rules
+// ===============================================================
+//
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users/{userId}/pathways
+// Document ID: {pathwayId}
+// Fields:
+//   - id: string (required, 1-128 chars, matches pathwayId, immutable)
+//   - userId: string (required, matches auth.uid and path userId, immutable)
+//   - createdAt: string (required, ISO 8601 string, 10-50 chars, immutable)
+//   - title: string (required, 1-200 chars)
+//   - city: string (required, exactly 'Pune')
+//   - method: string (required, 'qloo' or 'baseline')
+//   - steps: list (required, 1-10 items)
+//   - preferencesSnapshot: map (optional)
+//   - activitySnapshot: list (optional, 0-10 items)
+//   - qlooUsed: bool (optional)
+//   - explainabilityAvailable: bool (optional)
+//   - sourceStatusSummary: string (optional, 0-500 chars)
+//
+// Default Deny:
+//   All other root paths and subcollections are denied by default.
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if user is authenticated and NOT an anonymous guest
+    function isAuthenticated() {
+      return request.auth != null &&
+        (!('firebase' in request.auth.token) ||
+         !('sign_in_provider' in request.auth.token.firebase) ||
+         request.auth.token.firebase.sign_in_provider != 'anonymous');
+    }
+
+    // Check if the authenticated user owns the resource path
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Verify all required fields exist
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Strict schema enforcement: verify only permitted fields exist
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Prevent modification of immutable fields on update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // Validate bounded string lengths
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    // ===============================================================
+    // Domain Validator (Validator Function Pattern)
+    // Used in BOTH create and update rules to eliminate Update Bypass
+    // ===============================================================
+    function isValidSavedPathway(data, pathwayId, userId) {
+      return hasRequiredFields(['id', 'userId', 'createdAt', 'title', 'city', 'steps', 'method']) &&
+        hasOnlyAllowedFields([
+          'id',
+          'userId',
+          'createdAt',
+          'title',
+          'city',
+          'steps',
+          'method',
+          'preferencesSnapshot',
+          'activitySnapshot',
+          'qlooUsed',
+          'explainabilityAvailable',
+          'sourceStatusSummary'
+        ]) &&
+        // id validation: string, bounded, and matches document ID
+        isValidString(data.id, 1, 128) &&
+        data.id == pathwayId &&
+        // userId validation: strictly matches path and auth token
+        data.userId is string &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        // title: non-empty bounded string
+        isValidString(data.title, 1, 200) &&
+        // city: restricted to Pune for MVP
+        data.city is string &&
+        data.city == 'Pune' &&
+        // createdAt: bounded ISO timestamp string
+        isValidString(data.createdAt, 10, 50) &&
+        // method: strictly qloo or baseline
+        data.method is string &&
+        (data.method == 'qloo' || data.method == 'baseline') &&
+        // steps: bounded list to prevent payload exhaustion
+        data.steps is list &&
+        data.steps.size() >= 1 &&
+        data.steps.size() <= 10 &&
+        // Optional fields validation
+        (!('preferencesSnapshot' in data) || data.preferencesSnapshot is map) &&
+        (!('activitySnapshot' in data) || (data.activitySnapshot is list && data.activitySnapshot.size() <= 10)) &&
+        (!('qlooUsed' in data) || data.qlooUsed is bool) &&
+        (!('explainabilityAvailable' in data) || data.explainabilityAvailable is bool) &&
+        (!('sourceStatusSummary' in data) || isValidString(data.sourceStatusSummary, 0, 500));
+    }
+
+    // ===============================================================
+    // Default Deny Rule
+    // Deny all reads and writes across any unmapped collection
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ===============================================================
+    // User Pathways Collection
+    // Path: users/{userId}/pathways/{pathwayId}
+    // ===============================================================
+    match /users/{userId}/pathways/{pathwayId} {
+      // Owner can read their own pathways; list queries filter by owner path
+      allow read: if isOwner(userId);
+
+      // Create: Owner-only, validated schema, UID parity, DoS limits
+      allow create: if isOwner(userId) &&
+        isValidSavedPathway(request.resource.data, pathwayId, userId);
+
+      // Update: Owner-only, immutable fields protected, full schema re-validated
+      allow update: if isOwner(userId) &&
+        resource.data.userId == request.auth.uid &&
+        areImmutableFieldsUnchanged(['id', 'userId', 'createdAt']) &&
+        isValidSavedPathway(request.resource.data, pathwayId, userId);
+
+      // Delete: Owner-only, verified against existing document ownership
+      allow delete: if isOwner(userId) &&
+        resource.data.userId == request.auth.uid;
+    }
+  }
+}

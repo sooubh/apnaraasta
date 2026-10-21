@@ -1,77 +1,146 @@
-# ApnaRaasta — Agent Handoff Documentation
+# ApnaRaasta (अपना रास्ता)
+> **From Your Interests to Your People.**  
+> A Qloo-powered, Gemini-agentic cultural discovery and community participation platform built for Pune, India.
 
-**Tagline:** From Your Interests to Your People.  
-**Document status:** Product decisions locked; implementation may begin only by following these documents.  
-**Current target:** Mobile-first responsive web app for the Qloo Agentic Hackathon. Native mobile app is post-hackathon scope.
+---
 
-## Start here — required reading order
+## 1. Overview
 
-1. [`AGENTS.md`](AGENTS.md) — master instructions for Antigravity/coding agents.
-2. [`RULES.md`](RULES.md) — non-negotiable scope, UI, data, security, and completion rules.
-3. [`PRD.md`](PRD.md) — product requirements and explicit non-goals.
-4. [`UI_REFERENCE_SPEC.md`](UI_REFERENCE_SPEC.md) — analysis of the screenshots supplied by the product owner. The included images are the visual source of truth.
-5. [`TRD.md`](TRD.md) — technical implementation direction.
-6. [`QLOO_INTEGRATION.md`](QLOO_INTEGRATION.md) — verified Qloo API usage and guardrails.
-7. [`ARCHITECTURE.md`](ARCHITECTURE.md), [`API_CONTRACTS.md`](API_CONTRACTS.md), [`DATA_MODEL.md`](DATA_MODEL.md), [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md).
-8. [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`TEST_PLAN.md`](TEST_PLAN.md), [`ACCEPTANCE_CRITERIA.md`](ACCEPTANCE_CRITERIA.md), and [`DEMO_GUIDE.md`](DEMO_GUIDE.md).
+**ApnaRaasta** helps residents, newcomers, and students in Pune convert cultural tastes into practical, grounded **three-step community pathways**. Rather than overwhelming users with disconnected event search results or ungrounded generative hallucinations, ApnaRaasta pairs **Qloo's cultural intelligence taste graph** with a **curated, source-verified local activity catalogue** and a **bounded Gemini orchestrator**.
 
-Do not begin by generating UI or creating files before reading the source of truth. If any implementation choice conflicts with a locked decision below, stop and report the conflict instead of improvising.
+### The 3-Step Pathway Philosophy
+1. **Step 1: Approachable Start** — Low-barrier, gentle introduction (e.g. silent reading, free open screenings, community photowalks).
+2. **Step 2: Shared Interest** — Deeper engagement in a focused creative discipline or interest group.
+3. **Step 3: Recurring Community** — Sustained weekly/monthly community rhythms and routines for lasting connection.
 
-## Locked product decisions
+---
 
-- Product: ApnaRaasta, a Qloo-powered AI agent helping anyone seeking cultural communities discover local activities and recurring communities.
-- Launch city: Pune, Maharashtra, India.
-- Platform now: mobile-first responsive web app; Next.js + TypeScript + Tailwind CSS; deployment on Vercel.
-- Native app: explicitly post-hackathon.
-- LLM: Gemini, using controlled server-side tool/function calling.
-- Cultural intelligence: Qloo API using the hackathon environment and documented endpoints.
-- Activity data: hybrid — manually curated Pune records with source links and verification dates; live data only where the source is accessible and its returned facts are reliably verifiable.
-- Main experience: guided onboarding → taste signal resolution → Qloo-powered agent → one coherent 3-step pathway → alternatives/regenerate.
-- Core activity categories: music and films; photography and art; books and board games; food experiences; outdoor activities; volunteering.
-- Filters: budget, area/distance, available days/times, social comfort level.
-- Community means activities and recurring communities. It does **not** mean matching individual people.
-- Guests may generate a pathway. Google sign-in is required to save pathways and view history.
-- Judges/users can open a separate Qloo-vs-generic-AI comparison screen.
-- Activities link out to source/registration pages. No in-app booking, payments, or messaging.
-- Saved pathway/history support is in scope for signed-in users.
-- User-provided UI reference screenshots are mandatory visual direction. Do not invent a new design system or copy unrelated features from the references.
-- Fresh repository. Do not modify unrelated repositories or add unrelated infrastructure.
+## 2. Core Architecture
 
-## Repository organization expected after implementation
-
-The agent may adapt paths to sensible Next.js conventions but should retain clear feature boundaries. Recommended:
-
-```text
-src/
-  app/                     # routes and route handlers
-  components/              # reusable UI components
-  features/onboarding/     # onboarding state and components
-  features/pathway/        # pathway generation/results
-  features/benchmark/      # Qloo vs baseline comparison
-  features/history/        # signed-in saved pathways
-  lib/qloo/                # server-only Qloo adapter
-  lib/gemini/              # server-only Gemini adapter/tool schemas
-  lib/activities/          # verified activity data and filtering
-  lib/firebase/            # Firebase client config and auth
-  lib/validation/          # input/output schemas
-  types/                   # shared types
- data/activities/           # curated records + source/verification metadata
- docs/                      # keep this handoff pack or a current copy
- tests/                     # unit/integration/e2e tests
+```mermaid
+flowchart TD
+  U[Responsive Web UI: Next.js + Tailwind] -->|Preferences: Categories, Area, Budget, Rhythm| API[Next.js Server API Routes]
+  API --> V[Zod Validation & Deterministic Constraints]
+  V --> Q[Qloo Adapter: /search, /v2/tags, /v2/insights]
+  Q --> C[Pune Activity Catalogue: Verified Local Records]
+  C --> G[Gemini Bounded Orchestrator: Tool-Calling & Schema Validation]
+  G --> O[Validated 3-Step Pathway + Alternatives]
+  O --> U
+  U -->|Google Sign-In| FA[Firebase Authentication]
+  U -->|Save & Read History| FS[(Firestore: users/{uid}/pathways)]
 ```
 
-## Qloo technical facts checked against the official guide
+---
 
-- Hackathon API base URL: `https://hackathon.api.qloo.com`.
-- Use `X-Api-Key` header; never put the key in a URL, browser bundle, committed file, or client-side request.
-- The Insights API is `GET /v2/insights`; `/search` is a separate entity lookup endpoint.
-- Use `/v2/tags` (per current guide) when resolving valid tag IDs.
-- Do **not** use legacy `/recs` or `/recommendations` endpoints.
-- Only documented parameters supported by a selected `filter.type` should be used; unsupported parameters can be silently ignored.
-- Private server-side caching is permitted by the hackathon guide, but Qloo response data must not be placed in the public repository.
+## 3. Key Capabilities
 
-See [`QLOO_INTEGRATION.md`](QLOO_INTEGRATION.md) and [`SOURCE_REGISTER.md`](SOURCE_REGISTER.md).
+- **Cultural Signal Grounding (Qloo API)**:
+  - Resolves taste queries (artists, authors, films) via `/search` and `/v2/tags`.
+  - Queries cultural place and venue insights in Pune via `GET /v2/insights` with `feature.explainability=true`.
+  - Connects taste signals to Pune physical spaces and community groups without exposing keys or raw payloads.
+- **Bounded Gemini Orchestrator**:
+  - Operates on a strict candidate pool derived from deterministic constraints.
+  - Generates exactly 3 sequential steps plus valid alternatives.
+  - Employs strict JSON schemas; hallucinatory IDs are programmatically rejected.
+- **Fair Comparison Engine (`/compare`)**:
+  - Benchmarks the Qloo-informed pathway against a generic AI baseline arm.
+  - Evaluates both arms against the **exact same user preferences** and **same verified candidate pool**.
+  - Computes objective, verifiable metrics (candidate pool size, verified source count, constraint compliance, category coverage) with honest disclaimers.
+- **Owner-Scoped Persistence (Firebase & Firestore)**:
+  - Guest exploration requires no authentication.
+  - Google sign-in enables saving pathways to `users/{uid}/pathways/{pathwayId}`.
+  - Production-hardened Firestore Security Rules (`firestore.rules`) block cross-user access, anonymous tokens, and payload exhaustion.
+- **Reference-Matched Design**:
+  - Derived from supplied visual references (`assets/ui-references/`): soft periwinkle/lavender canvas (`#EAEBFA`), rounded-3xl floating cards, pill selectors, and clean mobile-first navigation dock.
 
-## Before marking this pack complete
+---
 
-The coding agent must replace no locked requirement. It must establish a working build, demonstrate real Qloo calls, record the dataset's evidence, test Firestore rules, and deploy a working HTTPS demo. It must not claim a test passed unless it was executed and its result observed.
+## 4. Approved Activity Categories in Pune
+
+1. **Music & Films**: NFAI Film Circle, Raah Cultural Baithaks, Aashayan Film Club.
+2. **Photography & Art**: Gyaan Adab Studio, Pune Photowalkers Collective, TIFA Working Studios.
+3. **Books & Board Games**: Pagdandi Bookstore Cafe, Pune Board Gamers Guild, Silent Book Club Pune.
+4. **Food Experiences**: Blue Tokai KP Coffee Cuppings, Camp Heritage Bakery Walk, Pune Sourdough Guild.
+5. **Outdoor Activities**: Vetal Tekdi Nature Walk, Pune Urban Cyclists, Boulder Vibe Climbing.
+6. **Volunteering**: Anandvan Urban Forest Initiative, Jeev Raksha Animal Care, Teach for Pune.
+
+Every record in `src/data/puneActivities.ts` has a verifiable `sourceName`, `sourceUrl`, `verifiedAt` timestamp, and explicit notes on known vs. unknown fields.
+
+---
+
+## 5. Getting Started Locally
+
+### Prerequisites
+- Node.js `v18+` (Tested on `v22.23.2`)
+- npm `v9+` (Tested on `v10.9.8`)
+
+### Setup Instructions
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/sooubh/apnaraasta.git
+   cd apnaraasta
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables:**
+   ```bash
+   cp .env.example .env.local
+   ```
+   Add your keys to `.env.local`:
+   ```ini
+   QLOO_API_KEY=your_qloo_hackathon_key
+   QLOO_BASE_URL=https://hackathon.api.qloo.com
+   GEMINI_API_KEY=your_gemini_api_key
+   GEMINI_MODEL=gemini-2.0-flash
+
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_web_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   ```
+
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 6. Verification and Test Scripts
+
+Run the comprehensive test suite and validation gates:
+
+```bash
+# Run unit & integration tests (Vitest)
+npm test
+
+# Type-check TypeScript without emit
+npm run typecheck
+
+# Lint source code
+npm run lint
+
+# Production build
+npm run build
+```
+
+---
+
+## 7. Security & Privacy
+
+- **Server-Side Provider Secrets**: `QLOO_API_KEY` and `GEMINI_API_KEY` are strictly server-side environment variables and are never bundled into client scripts.
+- **No Raw Qloo Storage**: In accordance with the Qloo hackathon guidelines, raw provider response payloads are normalized and never committed to source control or saved to public Firestore documents.
+- **Firestore Owner Isolation**: Rules enforce `request.auth.uid == userId` for all read, write, and delete operations on `/users/{userId}/pathways/{pathwayId}`.
+
+---
+
+## 8. License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).
