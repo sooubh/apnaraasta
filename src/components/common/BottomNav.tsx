@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Compass, Bookmark, User } from "lucide-react";
+import { LayoutDashboard, Compass, Bookmark, User } from "lucide-react";
 
-export type NavTab = "discover" | "saved" | "profile";
+export type NavTab = "dashboard" | "discover" | "saved" | "profile";
 
 interface BottomNavProps {
   currentTab: NavTab;
@@ -20,15 +20,27 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     <nav className="fixed bottom-3 left-0 right-0 z-40 px-4 flex justify-center pointer-events-none">
       <div className="bg-white/95 backdrop-blur-lg border border-raasta-border shadow-floating rounded-full px-3 py-1.5 flex items-center space-x-1.5 pointer-events-auto">
         <button
+          onClick={() => onTabChange("dashboard")}
+          className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all ${
+            currentTab === "dashboard"
+              ? "bg-raasta-ink text-white shadow-sm"
+              : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4" />
+          <span>Dashboard</span>
+        </button>
+
+        <button
           onClick={() => onTabChange("discover")}
-          className={`flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+          className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all ${
             currentTab === "discover"
               ? "bg-raasta-ink text-white shadow-sm"
               : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"
           }`}
         >
           <Compass className="w-4 h-4" />
-          <span>Discover</span>
+          <span>Feed</span>
         </button>
 
         <button

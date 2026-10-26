@@ -11,6 +11,7 @@ import { BottomNav, NavTab } from "@/components/common/BottomNav";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { ApiHealthModal } from "@/components/common/ApiHealthModal";
 import { StepOnboarding } from "@/components/onboarding/StepOnboarding";
+import { MainDashboardView } from "@/components/dashboard/MainDashboardView";
 import { PersonalizedFeed } from "@/components/feed/PersonalizedFeed";
 import { ProfileSidebar } from "@/components/profile/ProfileSidebar";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
@@ -30,7 +31,7 @@ export default function Home() {
   const { user, profile, loadingProfile, updateProfile } = useAuth();
 
   // Navigation tab
-  const [currentTab, setCurrentTab] = useState<NavTab>("discover");
+  const [currentTab, setCurrentTab] = useState<NavTab>("dashboard");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [isApiHealthModalOpen, setIsApiHealthModalOpen] = useState(false);
@@ -209,7 +210,24 @@ export default function Home() {
         ) : (
           /* Authenticated / Configured Experience with Tabs */
           <>
-            {/* Tab 1: Personalized Feed */}
+            {/* Tab 1: Comprehensive Cultural Dashboard */}
+            {currentTab === "dashboard" && (
+              <MainDashboardView
+                profile={profile}
+                pathway={pathway}
+                qlooEvidence={qlooEvidence}
+                savedCount={savedCount}
+                isLoadingPathway={isLoading}
+                onRegenerate={handleRegenerate}
+                onEditPreferences={() => setIsEditProfileModalOpen(true)}
+                onGoToDiscover={() => setCurrentTab("discover")}
+                onGoToSaved={() => setCurrentTab("saved")}
+                onGoToProfile={() => setCurrentTab("profile")}
+                onOpenAuthModal={() => setIsAuthModalOpen(true)}
+              />
+            )}
+
+            {/* Tab 2: Personalized Feed */}
             {currentTab === "discover" && (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-8 w-full">
                 {/* Desktop Sticky Profile Sidebar */}

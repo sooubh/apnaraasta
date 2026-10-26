@@ -2,6 +2,7 @@
 
 import React from "react";
 import {
+  LayoutDashboard,
   Compass,
   MapPin,
   User as UserIcon,
@@ -61,6 +62,17 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Desktop Center Navigation Tabs */}
         {onTabChange && (
           <nav className="hidden md:flex items-center space-x-1.5 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full border border-raasta-border shadow-subtle">
+            <button
+              onClick={() => onTabChange("dashboard")}
+              className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                currentTab === "dashboard"
+                  ? "bg-raasta-ink text-white shadow-sm"
+                  : "text-raasta-inkMuted hover:text-raasta-ink hover:bg-raasta-subtle"
+              }`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Dashboard</span>
+            </button>
             <button
               onClick={() => onTabChange("discover")}
               className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
