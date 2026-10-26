@@ -60,7 +60,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-card border border-raasta-border space-y-6">
+    <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-[0_2px_16px_rgba(27,25,49,0.04)] border border-[#E8E7F2] space-y-6">
       {/* Top Banner Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-raasta-borderSubtle">
         <div className="space-y-1">

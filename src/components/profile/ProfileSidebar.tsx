@@ -47,7 +47,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   return (
     <aside className="hidden lg:block w-80 shrink-0 space-y-4 sticky top-20 self-start">
       {/* User Cultural Passport Card */}
-      <div className="bg-white rounded-3xl p-5 shadow-card border border-raasta-border space-y-4">
+      <div className="bg-white rounded-3xl p-5 shadow-[0_2px_16px_rgba(27,25,49,0.04)] border border-[#E8E7F2] space-y-4">
         {/* Header with Avatar & Details */}
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">

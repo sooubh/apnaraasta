@@ -281,7 +281,7 @@ interface ActivityFeedCardProps {
 
 const ActivityFeedCard: React.FC<ActivityFeedCardProps> = ({ activity, compact = false }) => {
   return (
-    <div className="bg-white rounded-3xl border border-raasta-border overflow-hidden shadow-subtle hover:shadow-floating transition-all duration-300 flex flex-col justify-between group">
+    <div className="bg-white rounded-3xl border border-[#E8E7F2] overflow-hidden shadow-[0_2px_12px_rgba(27,25,49,0.03)] hover:shadow-[0_8px_24px_rgba(27,25,49,0.06)] transition-all duration-300 flex flex-col justify-between group">
       <div>
         {/* BIG HERO IMAGE */}
         {activity.imageUrl && (
@@ -290,10 +290,11 @@ const ActivityFeedCard: React.FC<ActivityFeedCardProps> = ({ activity, compact =
             <img
               src={activity.imageUrl}
               alt={activity.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
             />
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
+            {/* Gradient Scrim */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
 
             {/* Top Badge */}
             <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold bg-white/95 backdrop-blur-sm text-raasta-ink shadow-subtle border border-raasta-border">
@@ -319,8 +320,8 @@ const ActivityFeedCard: React.FC<ActivityFeedCardProps> = ({ activity, compact =
           </div>
         )}
 
-        <div className="p-5 space-y-2">
-          <h4 className="font-bold text-base sm:text-lg text-raasta-ink leading-snug line-clamp-1">
+        <div className="p-5 space-y-2.5">
+          <h4 className="font-bold text-base sm:text-lg text-raasta-ink leading-snug line-clamp-1 group-hover:text-raasta-primary transition-colors">
             {activity.title}
           </h4>
 
@@ -329,9 +330,9 @@ const ActivityFeedCard: React.FC<ActivityFeedCardProps> = ({ activity, compact =
           </p>
 
           {activity.scheduleText && (
-            <div className="p-2.5 rounded-xl bg-raasta-subtle border border-raasta-borderSubtle text-[11px] text-raasta-ink flex items-center">
+            <div className="p-2.5 rounded-xl bg-[#F8F8FC] border border-[#EDEDF5] text-[11px] text-raasta-ink flex items-center">
               <Clock className="w-3.5 h-3.5 mr-1.5 text-raasta-primary shrink-0" />
-              <span className="line-clamp-1">{activity.scheduleText}</span>
+              <span className="line-clamp-1 font-medium">{activity.scheduleText}</span>
             </div>
           )}
         </div>
@@ -347,7 +348,7 @@ const ActivityFeedCard: React.FC<ActivityFeedCardProps> = ({ activity, compact =
             href={activity.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[11px] font-bold text-raasta-primary hover:text-raasta-primaryHover inline-flex items-center bg-raasta-subtle hover:bg-raasta-primaryLight px-3 py-1 rounded-full border border-raasta-border transition-colors"
+            className="text-[11px] font-bold text-raasta-primary hover:text-raasta-primaryHover inline-flex items-center bg-raasta-subtle hover:bg-raasta-primaryLight px-3.5 py-1 rounded-full border border-raasta-border transition-all"
           >
             <span>Explore</span>
             <ExternalLink className="w-3 h-3 ml-1" />

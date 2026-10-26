@@ -483,11 +483,23 @@ export function filterApprovedActivities(
       }
     }
 
-    // 4. Area match (if areas specified and record has known area)
+    // 4. Area match with tokenized neighborhood support (e.g. "FC Road & Shivaji Nagar", "Baner & Aundh")
     if (filters.areas && filters.areas.length > 0 && act.area) {
-      const matchesArea = filters.areas.some(
-        (a) => act.area?.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(act.area?.toLowerCase() || "")
+      const actAreaTokens = act.area
+        .toLowerCase()
+        .split(/[&,/]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const filterAreaTokens = filters.areas
+        .flatMap((a) => a.toLowerCase().split(/[&,/]+/))
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const matchesArea = filterAreaTokens.some((ft) =>
+        actAreaTokens.some((at) => at.includes(ft) || ft.includes(at))
       );
+
       if (!matchesArea) {
         return false;
       }

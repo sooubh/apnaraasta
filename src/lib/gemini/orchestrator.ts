@@ -108,24 +108,48 @@ export class PathwayOrchestrator {
         score += 30;
       }
 
-      // 2. Area preference
+      // 2. Area preference with tokenized neighborhood support
       if (preferences.areas.length > 0 && act.area) {
-        const matchesArea = preferences.areas.some(
-          (a) =>
-            act.area?.toLowerCase().includes(a.toLowerCase()) ||
-            a.toLowerCase().includes(act.area?.toLowerCase() || "")
+        const actAreaTokens = act.area
+          .toLowerCase()
+          .split(/[&,/]+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        const prefAreaTokens = preferences.areas
+          .flatMap((a) => a.toLowerCase().split(/[&,/]+/))
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        const matchesArea = prefAreaTokens.some((pt) =>
+          actAreaTokens.some((at) => at.includes(pt) || pt.includes(at))
         );
+
         if (matchesArea) {
           score += 25;
         }
       }
 
-      // 3. Social comfort
+      // 3. Social comfort match
       if (act.socialComfort && act.socialComfort === preferences.socialComfort) {
         score += 15;
       }
 
-      // 4. Qloo Cultural Affinity
+      // 4. Budget fit bonus
+      if (
+        !preferences.flexibleBudget &&
+        preferences.budgetMaxInr !== undefined &&
+        preferences.budgetMaxInr >= 0
+      ) {
+        if (
+          (act.costStatus === "free_confirmed" && preferences.budgetMaxInr >= 0) ||
+          (act.priceMinInr !== undefined && act.priceMinInr <= preferences.budgetMaxInr)
+        ) {
+          score += 10;
+        }
+      }
+
+      // 5. Qloo Cultural Affinity
       if (qlooPlaces.length > 0) {
         const match = qlooPlaces.find((p) => {
           const actTitleLower = act.title.toLowerCase();
@@ -322,21 +346,21 @@ export class PathwayOrchestrator {
         (c) => c.activity.socialComfort === "low_pressure" || c.activity.costStatus === "free_confirmed"
       ) || scoredCandidates[0];
 
-    // 2. Shared interest: choose from remaining with high interest match
-    const remainingAfter1 = scoredCandidates.filter((c) => c.activity.id !== step1Cand.activity.id);
+    // 2. Shared interest: choose from remaining with high interest match (strictly distinct from step 1)
+    const remainingForStep2 = scoredCandidates.filter((c) => c.activity.id !== step1Cand.activity.id);
     const step2Cand =
-      remainingAfter1.find(
-        (c) => c.activity.category === preferences.categories[0] || c.activity.socialComfort === "balanced"
-      ) || remainingAfter1[0] || step1Cand;
+      remainingForStep2.find(
+        (c) => preferences.categories.includes(c.activity.category)
+      ) || remainingForStep2[0] || scoredCandidates[0];
 
-    // 3. Recurring participation: prefer recurring_community
-    const remainingAfter2 = remainingAfter1.filter((c) => c.activity.id !== step2Cand.activity.id);
+    // 3. Recurring participation: prefer recurring_community (strictly distinct from step 1 and step 2)
+    const remainingForStep3 = remainingForStep2.filter((c) => c.activity.id !== step2Cand.activity.id);
     const step3Cand =
-      remainingAfter2.find(
+      remainingForStep3.find(
         (c) => c.activity.activityKind === "recurring_community" || c.activity.scheduleKind === "recurring"
-      ) || remainingAfter2[0] || step1Cand;
+      ) || remainingForStep3[0] || remainingForStep2[0] || scoredCandidates[0];
 
-    // Alternatives: top remaining
+    // Alternatives: top remaining candidates not used in the 3 steps
     const usedIds = new Set([step1Cand.activity.id, step2Cand.activity.id, step3Cand.activity.id]);
     const alternativeIds = scoredCandidates
       .map((c) => c.activity.id)
@@ -357,7 +381,8 @@ export class PathwayOrchestrator {
         ? categoryNames[0]
         : categoryNames.slice(0, -1).join(", ") + " and " + categoryNames.slice(-1);
 
-    const title = `Your 3-Step Pathway into Pune's ${formattedCategories} Community`;
+    const areaSuffix = preferences.areas.length > 0 ? ` in ${preferences.areas[0]}` : "";
+    const title = `Your 3-Step Pathway into Pune's ${formattedCategories} Scene${areaSuffix}`;
 
     return {
       title,

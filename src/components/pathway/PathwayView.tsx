@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   RefreshCw,
   SlidersHorizontal,
@@ -42,6 +42,12 @@ export const PathwayView: React.FC<PathwayViewProps> = ({
     pathway.alternatives || []
   );
   const [showEvidence, setShowEvidence] = useState(false);
+
+  // Synchronize state whenever pathway prop updates (e.g. on profile change or regeneration)
+  useEffect(() => {
+    setCurrentSteps(pathway.steps);
+    setCurrentAlternatives(pathway.alternatives || []);
+  }, [pathway]);
 
   // Handle swapping a step with an alternative
   const handleSwap = (currentActivityId: string) => {

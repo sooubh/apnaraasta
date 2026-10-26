@@ -89,7 +89,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Hero Cultural Passport Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-card border border-raasta-border space-y-6">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_2px_16px_rgba(27,25,49,0.04)] border border-[#E8E7F2] space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             {profile.photoURL ? (
@@ -192,7 +192,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* Preferences Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Selected Interests Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-card border border-raasta-border space-y-3">
+        <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(27,25,49,0.04)] border border-[#E8E7F2] space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-sm text-raasta-ink flex items-center space-x-2">
               <Compass className="w-4 h-4 text-raasta-primary" />
@@ -226,7 +226,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
 
         {/* Practical Rhythms & Budget */}
-        <div className="bg-white rounded-3xl p-6 shadow-card border border-raasta-border space-y-3">
+        <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(27,25,49,0.04)] border border-[#E8E7F2] space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-sm text-raasta-ink flex items-center space-x-2">
               <Clock className="w-4 h-4 text-raasta-primary" />
@@ -270,7 +270,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* Taste Signals (Qloo Affinity) */}
       {profile.preferences.favouriteEntities &&
         profile.preferences.favouriteEntities.length > 0 && (
-          <div className="bg-white rounded-3xl p-6 shadow-card border border-raasta-border space-y-3">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(27,25,49,0.04)] border border-[#E8E7F2] space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-sm text-raasta-ink">
@@ -302,7 +302,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         )}
 
       {/* Saved Pathways Affordance */}
-      <div className="bg-white rounded-3xl p-6 shadow-card border border-raasta-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(27,25,49,0.04)] border border-[#E8E7F2] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-2xl bg-raasta-primaryLight text-raasta-primary flex items-center justify-center shrink-0">
             <Bookmark className="w-5 h-5" />
@@ -326,7 +326,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Live Services & API Diagnostics Affordance */}
       {onOpenApiHealth && (
-        <div className="bg-white rounded-3xl p-6 shadow-card border border-raasta-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(27,25,49,0.04)] border border-[#E8E7F2] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-2xl bg-raasta-subtle text-raasta-primary flex items-center justify-center shrink-0 border border-raasta-border">
               <Server className="w-5 h-5" />
