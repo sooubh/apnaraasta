@@ -14,6 +14,8 @@ import {
   Compass,
   CheckCircle2,
   Calendar,
+  Activity,
+  Server,
 } from "lucide-react";
 import { UserProfile } from "@/lib/types/profile";
 import { useAuth } from "@/lib/firebase/authContext";
@@ -23,6 +25,7 @@ interface ProfileViewProps {
   onEditProfile: () => void;
   onGoToSaved: () => void;
   onOpenAuthModal?: () => void;
+  onOpenApiHealth?: () => void;
   savedCount?: number;
 }
 
@@ -73,6 +76,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onEditProfile,
   onGoToSaved,
   onOpenAuthModal,
+  onOpenApiHealth,
   savedCount = 0,
 }) => {
   const { user, signOutUser } = useAuth();
@@ -319,6 +323,32 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           View Saved Pathways
         </button>
       </div>
+
+      {/* Live Services & API Diagnostics Affordance */}
+      {onOpenApiHealth && (
+        <div className="bg-white rounded-3xl p-6 shadow-card border border-raasta-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-2xl bg-raasta-subtle text-raasta-primary flex items-center justify-center shrink-0 border border-raasta-border">
+              <Server className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-raasta-ink">
+                Live Service & API Diagnostics
+              </h4>
+              <p className="text-xs text-raasta-inkMuted mt-0.5">
+                Verify live connectivity to Qloo Cultural Intelligence, Gemini Orchestrator, and Firebase.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onOpenApiHealth}
+            className="px-5 py-2.5 rounded-full bg-raasta-subtle hover:bg-raasta-primaryLight text-raasta-ink hover:text-raasta-primary border border-raasta-border text-xs font-bold transition-all shadow-subtle shrink-0 flex items-center space-x-1.5"
+          >
+            <Activity className="w-3.5 h-3.5 text-raasta-primary" />
+            <span>Open Diagnostics</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

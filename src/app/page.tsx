@@ -9,6 +9,7 @@ import {
 import { Navbar } from "@/components/common/Navbar";
 import { BottomNav, NavTab } from "@/components/common/BottomNav";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { ApiHealthModal } from "@/components/common/ApiHealthModal";
 import { StepOnboarding } from "@/components/onboarding/StepOnboarding";
 import { PersonalizedFeed } from "@/components/feed/PersonalizedFeed";
 import { ProfileSidebar } from "@/components/profile/ProfileSidebar";
@@ -32,6 +33,7 @@ export default function Home() {
   const [currentTab, setCurrentTab] = useState<NavTab>("discover");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [isApiHealthModalOpen, setIsApiHealthModalOpen] = useState(false);
 
   // Discovery / Feed state
   const [pathway, setPathway] = useState<Pathway | null>(null);
@@ -180,6 +182,7 @@ export default function Home() {
       <Navbar
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onEditProfile={() => setIsEditProfileModalOpen(true)}
+        onOpenApiHealth={() => setIsApiHealthModalOpen(true)}
         currentTab={currentTab}
         onTabChange={(tab) => setCurrentTab(tab)}
         savedCount={savedCount}
@@ -266,6 +269,7 @@ export default function Home() {
                 onEditProfile={() => setIsEditProfileModalOpen(true)}
                 onGoToSaved={() => setCurrentTab("saved")}
                 onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                onOpenApiHealth={() => setIsApiHealthModalOpen(true)}
                 savedCount={savedCount}
               />
             )}
@@ -302,6 +306,12 @@ export default function Home() {
           }
           refreshSavedCount();
         }}
+      />
+
+      {/* Live Services & API Diagnostics Modal */}
+      <ApiHealthModal
+        isOpen={isApiHealthModalOpen}
+        onClose={() => setIsApiHealthModalOpen(false)}
       />
     </div>
   );

@@ -9,6 +9,7 @@ import {
   Edit3,
   Bookmark,
   GitCompare,
+  Activity,
 } from "lucide-react";
 import { useAuth } from "@/lib/firebase/authContext";
 import { TARGET_CITY } from "@/lib/constants";
@@ -17,6 +18,7 @@ import { NavTab } from "./BottomNav";
 interface NavbarProps {
   onOpenAuthModal?: () => void;
   onEditProfile?: () => void;
+  onOpenApiHealth?: () => void;
   currentTab?: NavTab;
   onTabChange?: (tab: NavTab) => void;
   savedCount?: number;
@@ -25,6 +27,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuthModal,
   onEditProfile,
+  onOpenApiHealth,
   currentTab = "discover",
   onTabChange,
   savedCount = 0,
@@ -101,6 +104,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* User Auth & Profile Affordance */}
         <div className="flex items-center space-x-2">
+          {onOpenApiHealth && (
+            <button
+              onClick={onOpenApiHealth}
+              title="API Diagnostics & Live Services"
+              className="inline-flex items-center space-x-1.5 text-xs font-semibold bg-white hover:bg-raasta-subtle text-raasta-ink px-3 py-1.5 rounded-full border border-raasta-border shadow-subtle transition-all"
+            >
+              <Activity className="w-3.5 h-3.5 text-raasta-primary" />
+              <span className="hidden sm:inline">API Status</span>
+            </button>
+          )}
+
           {profile && onEditProfile && (
             <button
               onClick={onEditProfile}
