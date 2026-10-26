@@ -56,7 +56,7 @@ export const MainDashboardView: React.FC<MainDashboardViewProps> = ({
 
   const firstName = profile.displayName.trim().split(" ")[0] || "Explorer";
 
-  // Filter local spots in user's area
+  // Filter and rank local spots in user's area by matching categories
   const localSpots = useMemo(() => {
     const targetAreas = [profile.homeArea, ...(profile.preferences.areas || [])];
     const tokens = targetAreas
@@ -64,21 +64,39 @@ export const MainDashboardView: React.FC<MainDashboardViewProps> = ({
       .map((s) => s.trim())
       .filter(Boolean);
 
-    return PUNE_ACTIVITIES.filter((a) => {
+    const matches = PUNE_ACTIVITIES.filter((a) => {
       if (!a.area) return false;
       const actAreaLower = a.area.toLowerCase();
       return tokens.some((t) => actAreaLower.includes(t) || t.includes(actAreaLower));
-    }).slice(0, 4);
-  }, [profile.homeArea, profile.preferences.areas]);
+    });
 
-  // Weekend recurring circles
+    return matches
+      .sort((a, b) => {
+        const aCat = profile.preferences.categories.includes(a.category) ? 1 : 0;
+        const bCat = profile.preferences.categories.includes(b.category) ? 1 : 0;
+        return bCat - aCat;
+      })
+      .slice(0, 4);
+  }, [profile.homeArea, profile.preferences.areas, profile.preferences.categories]);
+
+  // Weekend recurring circles prioritized by user's categories and social comfort
   const weekendCircles = useMemo(() => {
-    return PUNE_ACTIVITIES.filter(
+    const circles = PUNE_ACTIVITIES.filter(
       (a) =>
         a.activityKind === "recurring_community" ||
         a.scheduleKind === "recurring"
-    ).slice(0, 4);
-  }, []);
+    );
+
+    return circles
+      .sort((a, b) => {
+        const aCat = profile.preferences.categories.includes(a.category) ? 2 : 0;
+        const bCat = profile.preferences.categories.includes(b.category) ? 2 : 0;
+        const aSocial = a.socialComfort === profile.preferences.socialComfort ? 1 : 0;
+        const bSocial = b.socialComfort === profile.preferences.socialComfort ? 1 : 0;
+        return bCat + bSocial - (aCat + aSocial);
+      })
+      .slice(0, 4);
+  }, [profile.preferences.categories, profile.preferences.socialComfort]);
 
   // Category catalog
   const filteredSpots = useMemo(() => {

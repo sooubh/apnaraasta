@@ -18,6 +18,16 @@ import {
   MAX_CANDIDATES_FOR_RANKING,
 } from "../constants";
 
+export const SCORING_WEIGHTS = {
+  PRIMARY_CATEGORY: 35,
+  SECONDARY_CATEGORY: 15,
+  AREA_MATCH: 25,
+  SOCIAL_COMFORT: 15,
+  BUDGET_FIT: 15,
+  QLOO_AFFINITY: 25,
+  PRICE_OVERSHOOT_PENALTY: -20,
+};
+
 export class PathwayOrchestrator {
   private geminiKey: string;
   private geminiModel: string;
@@ -34,7 +44,7 @@ export class PathwayOrchestrator {
   /**
    * Craft human, personal, and grounded match reasoning
    */
-  private generatePersonalizedRationale(
+  public generatePersonalizedRationale(
     act: Activity,
     role: PathwayStepRole,
     preferences: UserPreferences,
@@ -99,13 +109,18 @@ export class PathwayOrchestrator {
     preferences: UserPreferences,
     qlooPlaces: any[]
   ): Array<{ activity: Activity; score: number; qlooMatch?: any }> {
+    const primaryCategory = preferences.categories[0];
+    const secondaryCategories = preferences.categories.slice(1);
+
     return candidates.map((act) => {
       let score = 50;
       let qlooMatch: any = undefined;
 
-      // 1. Primary category match
-      if (preferences.categories.includes(act.category)) {
-        score += 30;
+      // 1. Primary & Secondary Category match
+      if (act.category === primaryCategory) {
+        score += SCORING_WEIGHTS.PRIMARY_CATEGORY;
+      } else if (secondaryCategories.includes(act.category)) {
+        score += SCORING_WEIGHTS.SECONDARY_CATEGORY;
       }
 
       // 2. Area preference with tokenized neighborhood support
@@ -126,26 +141,32 @@ export class PathwayOrchestrator {
         );
 
         if (matchesArea) {
-          score += 25;
+          score += SCORING_WEIGHTS.AREA_MATCH;
         }
       }
 
       // 3. Social comfort match
       if (act.socialComfort && act.socialComfort === preferences.socialComfort) {
-        score += 15;
+        score += SCORING_WEIGHTS.SOCIAL_COMFORT;
       }
 
-      // 4. Budget fit bonus
+      // 4. Budget fit bonus and overshoot penalty
       if (
-        !preferences.flexibleBudget &&
         preferences.budgetMaxInr !== undefined &&
         preferences.budgetMaxInr >= 0
       ) {
         if (
-          (act.costStatus === "free_confirmed" && preferences.budgetMaxInr >= 0) ||
+          act.costStatus === "free_confirmed" ||
           (act.priceMinInr !== undefined && act.priceMinInr <= preferences.budgetMaxInr)
         ) {
-          score += 10;
+          score += SCORING_WEIGHTS.BUDGET_FIT;
+        } else if (
+          act.costStatus === "known" &&
+          act.priceMinInr !== undefined &&
+          act.priceMinInr > preferences.budgetMaxInr
+        ) {
+          // Penalty in flexible mode for exceeding target budget
+          score += SCORING_WEIGHTS.PRICE_OVERSHOOT_PENALTY;
         }
       }
 
@@ -163,7 +184,7 @@ export class PathwayOrchestrator {
 
         if (match) {
           qlooMatch = match;
-          score += 25;
+          score += SCORING_WEIGHTS.QLOO_AFFINITY;
         }
       }
 
@@ -340,25 +361,44 @@ export class PathwayOrchestrator {
     scoredCandidates: Array<{ activity: Activity; score: number; qlooMatch?: any }>,
     preferences: UserPreferences
   ): Pathway {
-    // 1. Approachable start: prefer low_pressure or free/introductory place/activity
+    // 1. Approachable start: strictly prefer low_pressure or free/low-barrier place/activity
     const step1Cand =
       scoredCandidates.find(
-        (c) => c.activity.socialComfort === "low_pressure" || c.activity.costStatus === "free_confirmed"
+        (c) =>
+          c.activity.costStatus === "free_confirmed" ||
+          c.activity.socialComfort === "low_pressure" ||
+          (c.activity.priceMinInr !== undefined && c.activity.priceMinInr <= 150)
       ) || scoredCandidates[0];
 
     // 2. Shared interest: choose from remaining with high interest match (strictly distinct from step 1)
     const remainingForStep2 = scoredCandidates.filter((c) => c.activity.id !== step1Cand.activity.id);
-    const step2Cand =
-      remainingForStep2.find(
-        (c) => preferences.categories.includes(c.activity.category)
-      ) || remainingForStep2[0] || scoredCandidates[0];
+
+    // If user specified multiple categories, prioritize category diversity across steps
+    let step2Cand: (typeof scoredCandidates)[0] | undefined = undefined;
+    if (preferences.categories.length > 1) {
+      step2Cand = remainingForStep2.find(
+        (c) =>
+          c.activity.category !== step1Cand.activity.category &&
+          preferences.categories.includes(c.activity.category)
+      );
+    }
+
+    if (!step2Cand) {
+      step2Cand =
+        remainingForStep2.find((c) => preferences.categories.includes(c.activity.category)) ||
+        remainingForStep2[0] ||
+        scoredCandidates[0];
+    }
 
     // 3. Recurring participation: prefer recurring_community (strictly distinct from step 1 and step 2)
     const remainingForStep3 = remainingForStep2.filter((c) => c.activity.id !== step2Cand.activity.id);
     const step3Cand =
       remainingForStep3.find(
         (c) => c.activity.activityKind === "recurring_community" || c.activity.scheduleKind === "recurring"
-      ) || remainingForStep3[0] || remainingForStep2[0] || scoredCandidates[0];
+      ) ||
+      remainingForStep3[0] ||
+      remainingForStep2[0] ||
+      scoredCandidates[0];
 
     // Alternatives: top remaining candidates not used in the 3 steps
     const usedIds = new Set([step1Cand.activity.id, step2Cand.activity.id, step3Cand.activity.id]);

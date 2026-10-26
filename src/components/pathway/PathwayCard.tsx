@@ -20,7 +20,7 @@ interface PathwayCardProps {
   role: PathwayStepRole;
   activity: ActivityCardData;
   whyThisStep: string;
-  onSwap?: (currentId: string) => void;
+  onSwap?: (currentId: string, order: 1 | 2 | 3) => void;
   hasAlternatives?: boolean;
 }
 
@@ -49,6 +49,7 @@ const ROLE_META: Record<
 };
 
 export const PathwayCard: React.FC<PathwayCardProps> = ({
+  order,
   role,
   activity,
   whyThisStep,
@@ -107,7 +108,7 @@ export const PathwayCard: React.FC<PathwayCardProps> = ({
               {hasAlternatives && onSwap && (
                 <button
                   type="button"
-                  onClick={() => onSwap(activity.id)}
+                  onClick={() => onSwap(activity.id, order)}
                   title="Swap with another eligible Pune activity"
                   className="inline-flex items-center space-x-1 text-[11px] font-semibold text-white bg-black/40 hover:bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full transition-all border border-white/25"
                 >
